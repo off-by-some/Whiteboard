@@ -1,0 +1,15 @@
+# Dot files
+.*
+!.editorconfig
+!.git*
+
+# Python
+/dist
+/build
+*.pyc
+*.pyo
+*.egg*
+
+# Database files
+*.sqlite*
+*.db
