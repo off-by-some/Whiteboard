@@ -11,6 +11,12 @@ do ->
 
 	init = (container, width, height, fillColor) !->
 
+		# History of all commands
+		history = []
+
+		#the current buffer of commands
+		commands = []
+
 		canvas = createCanvas container, width, height
 		context = canvas.context
 
@@ -25,6 +31,7 @@ do ->
 
 		canvas.node.onmousemove = (e) !->
 
+
 			return unless canvas.isDrawing
 
 			x = e.pageX - this.offsetLeft
@@ -34,10 +41,13 @@ do ->
 			radius = 5
 
 			#The color of the pen
-			fillColor = '#ff0000'
+			fillColor = '#000000'
 
 			#Draw the image
 			context.fillCircle x,y,radius,fillColor
+			commands.push [x,y,radius,fillColor]
+
+			#console.log commands
 
 		canvas.node.onmousedown = (e) !->
 
@@ -46,7 +56,10 @@ do ->
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
+			history.push commands
+
+			commands = []
 
 	container = document.getElementById 'canvas'
 
-	init container, window.innerWidth - 17, window.innerHeight, '#000000'
+	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000'
