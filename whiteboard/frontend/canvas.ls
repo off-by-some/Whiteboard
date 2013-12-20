@@ -11,14 +11,14 @@ do ->
 
 	init = (container, width, height, fillColor) !->
 
-		# History of all commands
-		history = []
-
-		#the current buffer of commands
-		commands = []
-
 		canvas = createCanvas container, width, height
 		context = canvas.context
+		
+		# History of all commands
+		canvas.history = []
+
+		#the current buffer of commands
+		canvas.commands = []
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
@@ -44,19 +44,19 @@ do ->
 			fillColor = '#000000'
 
 			#Draw the image
-			context.fillCircle x,y,radius,fillColor
-			commands.push [x,y,radius,fillColor]
+			canvas.context.fillCircle x,y,radius,fillColor
+			canvas.commands.push [x,y,radius,fillColor]
 
-			# console.log commands
+			# console.log canvas.commands
 
 		canvas.redraw = !->
 		
 			# Clear the screen
-			context.clearRect 0, 0, canvas.node.width, canvas.node.height
-
+			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# Redraw everything in history
-			[context.fillCircle y[0], y[1], y[2], y[3] for x in history for y in x]
-
+			for x in canvas.history
+				for y in x
+					canvas.context.fillCircle y[0], y[1], y[2], y[3]
 
 		canvas.node.onmousedown = (e) !->
 
@@ -65,12 +65,9 @@ do ->
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
-			history.push commands
-			commands.pop
-			# console.log history
-			# console.log [commands]
+			canvas.history.push [x for x in canvas.commands]
 
-			# commands = []
+			canvas.commands = []
 			
 		window.onkeydown = (e) !->
 		
@@ -82,11 +79,11 @@ do ->
 			switch e.keyCode
 			case 90
 				if canvas.ctrlActivated
-					history.pop!
+					canvas.history.pop!
 					canvas.redraw!
 
 			if e.ctrlKey
-				canvas.ctrlActivated = off
+				canvas.ctrlActivated = false
 				
 	container = document.getElementById 'canvas'
 
