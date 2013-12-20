@@ -59,7 +59,30 @@ do ->
 			history.push [commands]
 
 			commands = []
-
+			
+		window.onkeydown = (e) !->
+		
+			if e.ctrlKey
+				canvas.ctrlActivated = true
+				
+		window.onkeyup = (e) !->
+		
+			if e.ctrlKey
+				canvas.ctrlActivated = false
+			# this shit don't work, try moving the do stuff.stuph outside of the switch statement
+			switch e.keyCode
+			case 90
+				if canvas.ctrlActivated
+					do history.pop
+					do canvas.redraw
+				
+		canvas.redraw = !->
+		
+			context.clearRect 0, 0, canvas.width, canvas.height
+			for i from 0 to history.length by 1
+				for j from 0 to history[i].length by 1
+					context.fillCircle history[i][j][0], history[i][j][1], history[i][j][2], history[i][j][3]
+				
 	container = document.getElementById 'canvas'
 
 	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000'
