@@ -77,7 +77,7 @@
           return results$;
         }()));
         canvas.history.push(tempAction);
-        canvas.commands = [];
+        canvas.action.coord_data = [];
       };
       window.onkeydown = function(e){
         if (e.ctrlKey) {

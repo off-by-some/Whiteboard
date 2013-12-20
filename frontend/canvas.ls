@@ -80,7 +80,7 @@ do ->
 			tempAction = new Action canvas.action.radius, canvas.action.fillColor, [x for x in canvas.action.coord_data]
 			canvas.history.push tempAction
 
-			canvas.commands = []
+			canvas.action.coord_data = []
 			
 		window.onkeydown = (e) !->
 		
