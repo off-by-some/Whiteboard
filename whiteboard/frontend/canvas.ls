@@ -81,6 +81,7 @@ do ->
 			context.clearRect 0, 0, canvas.width, canvas.height
 			for i from 0 to history.length by 1
 				for j from 0 to history[i].length by 1
+					# console.log history[i][j][0], history[i][j][1], history[i][j][2], history[i][j][3]
 					context.fillCircle history[i][j][0], history[i][j][1], history[i][j][2], history[i][j][3]
 				
 	container = document.getElementById 'canvas'
