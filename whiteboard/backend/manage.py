@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from alchemist.management import Manager
 from app import application
 
