@@ -19,16 +19,16 @@ do ->
 
 		canvas = createCanvas container, width, height
 		context = canvas.context
-		
+
 		# Which brush stroke radius to start out at
 		canvas.brushRadius = brushRadius
-		
+
 		# History of all commands
 		canvas.history = []
 
 		# The current buffer of commands
 		# canvas.commands = []
-		
+
 		# The canvas's current action
 		canvas.action = new Action brushRadius, fillColor, []
 
@@ -46,47 +46,60 @@ do ->
 
 			return unless canvas.isDrawing
 
-			x = e.pageX - this.offsetLeft
-			y = e.pageY - this.offsetTop
+			x = e.clientX #- this.offsetLeft
+			y = e.clientY #- this.offsetTop
 
-			#Draw the image
-			canvas.context.fillCircle x,y,canvas.action.radius,canvas.action.fillColor
+
+			context.line-to x, y
+
 			canvas.action.coord_data.push [x,y]
+
+			# Draw all the lines waiting to be drawn
+			context.stroke!
 
 			# console.log canvas.commands
 
+		# CTRL-Z is horribly broken btw, you're welcome!
 		canvas.redraw = !->
-		
+
 			# Clear the screen
 			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# Redraw everything in history
 			for x in canvas.history
 				for y in x.coord_data
-					canvas.context.fillCircle y[0], y[1], x.radius, x.fillColor
+					context.line-to y[0], y[1]
 
 		canvas.node.onmousedown = (e) !->
 
 			canvas.isDrawing = yes
-			
-			# The radius of the pen
-			canvas.action.radius = canvas.brushRadius
 
-			#The color of the pen
-			canvas.action.fillColor = '#000000'
+			# Move to the new position of the mouse, disable this if you want
+			# to connect with the previously drawn line (maybe ctrl click?)
+			context.moveTo e.clientX, e.clientY
+
+			# Radius of the pen... i think?
+			context.line-width = 10
+
+			# get rid of those nasty turns
+			context.line-join = context.line-cap = 'round'
+
 
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
-			tempAction = new Action canvas.action.radius, canvas.action.fillColor, [x for x in canvas.action.coord_data]
+
+			tempAction = (new Action canvas.action.radius,
+				canvas.action.fillColor, [x for x in canvas.action.coord_data])
+
 			canvas.history.push tempAction
 
 			canvas.action.coord_data = []
-			
+
 		window.onkeydown = (e) !->
-		
+
 			if e.ctrlKey
 				canvas.ctrlActivated = true
-				
+
 		window.onkeyup = (e) !->
 
 			switch e.keyCode
@@ -97,7 +110,7 @@ do ->
 
 			if e.ctrlKey
 				canvas.ctrlActivated = false
-				
+
 	container = document.getElementById 'canvas'
 
 	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 5
