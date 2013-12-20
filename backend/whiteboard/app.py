@@ -16,3 +16,7 @@ alchemist_armet.configure(application)
 from whiteboard.coordinates.resources import CoordinateResource
 
 CoordinateResource.mount('/whiteboard/', application)
+
+from whiteboard.user.resources import UsernameResource
+
+UsernameResource.mount('/whiteboard/', application)
