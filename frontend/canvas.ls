@@ -1,3 +1,9 @@
+class Action
+	(radius, color, coords) ->
+		@radius = radius
+		@fillColor = color
+		@coord_data = coords
+
 do ->
 	createCanvas = (parent, width=100, height=100) ->
 
@@ -9,16 +15,22 @@ do ->
 		parent.appendChild canvas.node
 		canvas
 
-	init = (container, width, height, fillColor) !->
+	init = (container, width, height, fillColor, brushRadius) !->
 
 		canvas = createCanvas container, width, height
 		context = canvas.context
 		
+		# Which brush stroke radius to start out at
+		canvas.brushRadius = brushRadius
+		
 		# History of all commands
 		canvas.history = []
 
-		#the current buffer of commands
-		canvas.commands = []
+		# The current buffer of commands
+		# canvas.commands = []
+		
+		# The canvas's current action
+		canvas.action = new Action brushRadius, fillColor, []
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
@@ -37,15 +49,9 @@ do ->
 			x = e.pageX - this.offsetLeft
 			y = e.pageY - this.offsetTop
 
-			# The radius of the pen
-			radius = 5
-
-			#The color of the pen
-			fillColor = '#000000'
-
 			#Draw the image
-			canvas.context.fillCircle x,y,radius,fillColor
-			canvas.commands.push [x,y,radius,fillColor]
+			canvas.context.fillCircle x,y,canvas.action.radius,canvas.action.fillColor
+			canvas.action.coord_data.push [x,y]
 
 			# console.log canvas.commands
 
@@ -55,17 +61,24 @@ do ->
 			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# Redraw everything in history
 			for x in canvas.history
-				for y in x
-					canvas.context.fillCircle y[0], y[1], y[2], y[3]
+				for y in x.coord_data
+					canvas.context.fillCircle y[0], y[1], x.radius, x.fillColor
 
 		canvas.node.onmousedown = (e) !->
 
 			canvas.isDrawing = yes
+			
+			# The radius of the pen
+			canvas.action.radius = canvas.brushRadius
+
+			#The color of the pen
+			canvas.action.fillColor = '#000000'
 
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
-			canvas.history.push [x for x in canvas.commands]
+			tempAction = new Action canvas.action.radius, canvas.action.fillColor, [x for x in canvas.action.coord_data]
+			canvas.history.push tempAction
 
 			canvas.commands = []
 			
@@ -87,4 +100,4 @@ do ->
 				
 	container = document.getElementById 'canvas'
 
-	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000'
+	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 5
