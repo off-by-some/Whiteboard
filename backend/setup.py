@@ -14,5 +14,9 @@ setup(
         'armet >= 0.4.0, < 0.5.0',
 
          'alchemist-armet >= 0.1.0',
+
+         'anyjson',
+
+         'shortuuid',
     ]
 )

@@ -16,6 +16,7 @@ SERVER_THREADED = True
 DATABASES = {'default': {
     'engine': 'mysql+oursql',
     'name': NAME,
+
 }}
 
 # List of registered components.
