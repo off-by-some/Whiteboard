@@ -15,11 +15,11 @@
       return canvas;
     };
     init = function(container, width, height, fillColor){
-      var history, commands, canvas, context;
-      history = [];
-      commands = [];
+      var canvas, context;
       canvas = createCanvas(container, width, height);
       context = canvas.context;
+      canvas.history = [];
+      canvas.commands = [];
       context.fillCircle = function(x, y, radius, fillColor){
         this.fillStyle = fillColor;
         this.beginPath();
@@ -36,17 +36,35 @@
         y = e.pageY - this.offsetTop;
         radius = 5;
         fillColor = '#000000';
-        context.fillCircle(x, y, radius, fillColor);
-        commands.push([x, y, radius, fillColor]);
+        canvas.context.fillCircle(x, y, radius, fillColor);
+        canvas.commands.push([x, y, radius, fillColor]);
+      };
+      canvas.redraw = function(){
+        var i$, ref$, len$, x, j$, len1$, y;
+        canvas.context.clearRect(0, 0, canvas.node.width, canvas.node.height);
+        for (i$ = 0, len$ = (ref$ = canvas.history).length; i$ < len$; ++i$) {
+          x = ref$[i$];
+          for (j$ = 0, len1$ = x.length; j$ < len1$; ++j$) {
+            y = x[j$];
+            canvas.context.fillCircle(y[0], y[1], y[2], y[3]);
+          }
+        }
       };
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
       };
       canvas.node.onmouseup = function(e){
-        var commands;
+        var x;
         canvas.isDrawing = false;
-        history.push([commands]);
-        commands = [];
+        canvas.history.push((function(){
+          var i$, ref$, len$, results$ = [];
+          for (i$ = 0, len$ = (ref$ = canvas.commands).length; i$ < len$; ++i$) {
+            x = ref$[i$];
+            results$.push(x);
+          }
+          return results$;
+        }()));
+        canvas.commands = [];
       };
       window.onkeydown = function(e){
         if (e.ctrlKey) {
@@ -54,26 +72,15 @@
         }
       };
       window.onkeyup = function(e){
-        if (e.ctrlKey) {
-          canvas.ctrlActivated = false;
-        }
         switch (e.keyCode) {
         case 90:
           if (canvas.ctrlActivated) {
-            history.pop();
+            canvas.history.pop();
             canvas.redraw();
           }
         }
-      };
-      canvas.redraw = function(){
-        var i$, to$, i, j$, to1$, j;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        for (i$ = 0, to$ = history.length; i$ <= to$; ++i$) {
-          i = i$;
-          for (j$ = 0, to1$ = history[i].length; j$ <= to1$; ++j$) {
-            j = j$;
-            context.fillCircle(history[i][j][0], history[i][j][1], history[i][j][2], history[i][j][3]);
-          }
+        if (e.ctrlKey) {
+          canvas.ctrlActivated = false;
         }
       };
     };
