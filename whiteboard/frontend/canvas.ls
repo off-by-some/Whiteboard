@@ -56,7 +56,7 @@ do ->
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
-			history.push commands
+			history.push [commands]
 
 			commands = []
 
