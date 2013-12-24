@@ -26,12 +26,33 @@
       return canvas;
     };
     init = function(container, width, height, fillColor, brushRadius){
-      var canvas, context;
+      var canvas, context, points, wireframeBrush;
       canvas = createCanvas(container, width, height);
       context = canvas.context;
+      points = {};
       canvas.brushRadius = brushRadius;
       canvas.history = [];
       canvas.action = new Action(brushRadius, fillColor, []);
+      wireframeBrush = function(context, event, points){
+        var i$, len$, x, nearpoint;
+        points.push([{
+          x: event.clientX,
+          y: event.clientY
+        }]);
+        context.beginPath();
+        context.moveTo(points[0].x, points[0].y);
+        for (i$ = 0, len$ = points.length; i$ < len$; ++i$) {
+          x = points[i$];
+          context.lineTo(points[x].x, points[x].y);
+          nearpoint = [x - 5];
+        }
+        if (nearpoint) {
+          context.moveTo(nearpoint.x(nearpoint.y));
+          context.lineTo(points[x].x, points[x].y);
+        }
+        context.stroke();
+        return points;
+      };
       context.fillCircle = function(x, y, radius, fillColor){
         this.fillStyle = fillColor;
         this.beginPath();
@@ -44,10 +65,10 @@
         if (!canvas.isDrawing) {
           return;
         }
-        x = e.pageX - this.offsetLeft;
-        y = e.pageY - this.offsetTop;
-        canvas.context.fillCircle(x, y, canvas.action.radius, canvas.action.fillColor);
-        canvas.action.coord_data.push([x, y]);
+        x = e.clientX;
+        y = e.clientY;
+        wireframeBrush(context, e, points);
+        context.stroke();
       };
       canvas.redraw = function(){
         var i$, ref$, len$, x, j$, ref1$, len1$, y;
@@ -56,14 +77,17 @@
           x = ref$[i$];
           for (j$ = 0, len1$ = (ref1$ = x.coord_data).length; j$ < len1$; ++j$) {
             y = ref1$[j$];
-            canvas.context.fillCircle(y[0], y[1], x.radius, x.fillColor);
+            context.lineTo(y[0], y[1]);
           }
         }
       };
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
-        canvas.action.radius = canvas.brushRadius;
-        canvas.action.fillColor = '#000000';
+        points.push({
+          x: e.clientX,
+          y: e.clientY
+        });
+        context.lineWidth = 10;
       };
       canvas.node.onmouseup = function(e){
         var tempAction, x;

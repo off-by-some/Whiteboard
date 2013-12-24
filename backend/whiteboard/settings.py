@@ -16,7 +16,9 @@ SERVER_THREADED = True
 DATABASES = {'default': {
     'engine': 'mysql+oursql',
     'name': NAME,
-
+    'username': 'root',
+    'host': 'localhost',
+    'port': 3306
 }}
 
 # List of registered components.
