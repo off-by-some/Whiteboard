@@ -35,22 +35,22 @@ do ->
 
 		#this is just in here for shits and giggles, it resides in brushes.ls
 
-		wireframe-brush = (context, event, points) ->
+		# wireframe-brush = (context, event, points) ->
 
-			points.push [x:event.clientX, y: event.clientY]
-			context.begin-path!
+		# 	points.push [x:event.clientX, y: event.clientY]
+		# 	context.begin-path!
 
-			context.move-to points[0].x, points[0].y
+		# 	context.move-to points[0].x, points[0].y
 
-			for x in points
-				context.line-to points[x].x, points[x].y
-				nearpoint = [x-5]
-			if nearpoint
-				context.move-to nearpoint.x nearpoint.y
-				context.line-to points[x].x, points[x].y
-			context.stroke!
+		# 	for x in points
+		# 		context.line-to points[x].x, points[x].y
+		# 		nearpoint = [x-5]
+		# 	if nearpoint
+		# 		context.move-to nearpoint.x nearpoint.y
+		# 		context.line-to points[x].x, points[x].y
+		# 	context.stroke!
 
-			points
+		# 	points
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
@@ -70,11 +70,11 @@ do ->
 			y = e.clientY #- this.offsetTop
 
 
-			# context.line-to x, y
+			context.line-to x, y
 
-			wireframe-brush context, e, points
+			# wireframe-brush context, e, points
 
-			# canvas.action.coord_data.push [x,y]
+			canvas.action.coord_data.push [x,y]
 
 			# Draw all the lines waiting to be drawn
 			context.stroke!
@@ -97,14 +97,14 @@ do ->
 
 			# Move to the new position of the mouse, disable this if you want
 			# to connect with the previously drawn line (maybe ctrl click?)
-			points.push {x: e.clientX, y: e.clientY}
-			# context.moveTo e.clientX, e.clientY
+			# points.push {x: e.clientX, y: e.clientY}
+			context.moveTo e.clientX, e.clientY
 
 			# Radius of the pen... i think?
 			context.line-width = 10
 
 			# get rid of those nasty turns
-			# context.line-join = context.line-cap = 'round'
+			context.line-join = context.line-cap = 'round'
 
 
 		canvas.node.onmouseup = (e) !->

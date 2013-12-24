@@ -26,33 +26,13 @@
       return canvas;
     };
     init = function(container, width, height, fillColor, brushRadius){
-      var canvas, context, points, wireframeBrush;
+      var canvas, context, points;
       canvas = createCanvas(container, width, height);
       context = canvas.context;
       points = {};
       canvas.brushRadius = brushRadius;
       canvas.history = [];
       canvas.action = new Action(brushRadius, fillColor, []);
-      wireframeBrush = function(context, event, points){
-        var i$, len$, x, nearpoint;
-        points.push([{
-          x: event.clientX,
-          y: event.clientY
-        }]);
-        context.beginPath();
-        context.moveTo(points[0].x, points[0].y);
-        for (i$ = 0, len$ = points.length; i$ < len$; ++i$) {
-          x = points[i$];
-          context.lineTo(points[x].x, points[x].y);
-          nearpoint = [x - 5];
-        }
-        if (nearpoint) {
-          context.moveTo(nearpoint.x(nearpoint.y));
-          context.lineTo(points[x].x, points[x].y);
-        }
-        context.stroke();
-        return points;
-      };
       context.fillCircle = function(x, y, radius, fillColor){
         this.fillStyle = fillColor;
         this.beginPath();
@@ -67,7 +47,8 @@
         }
         x = e.clientX;
         y = e.clientY;
-        wireframeBrush(context, e, points);
+        context.lineTo(x, y);
+        canvas.action.coord_data.push([x, y]);
         context.stroke();
       };
       canvas.redraw = function(){
@@ -83,11 +64,9 @@
       };
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
-        points.push({
-          x: e.clientX,
-          y: e.clientY
-        });
+        context.moveTo(e.clientX, e.clientY);
         context.lineWidth = 10;
+        context.lineJoin = context.lineCap = 'round';
       };
       canvas.node.onmouseup = function(e){
         var tempAction, x;
