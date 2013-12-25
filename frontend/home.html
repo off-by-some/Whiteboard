@@ -1,9 +1,56 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Whiteboard</title>
+		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:700' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' type='text/css' href='style.css' />
+		<script src='http://code.jquery.com/jquery-latest.js'></script>
+		<script type='text/javascript' src='menu.js'></script>
 	</head>
     <body>
-         <div id='canvas'> draw here.</div>
+		<a id="a-show" class="showhide" href='#'>Show Menu</a>
+		<a id="a-hide" class="showhide" href="#">Hide Menu</a>
+
+		<!--<div id="top-bar"><span id="caption"></span></div>-->
+
+		<div id="drawhere">Start Drawing Here</div> 
+		<!-- MENU -->
+		<div id='menu'>
+		<ul>
+		   <li class='has-sub' id="menu-active"><a href='#'><span>Brushes</span></a>
+		      <ul>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li><a href='#'><span>Brush</span></a></li>
+		         <li class='last'><a href='#'><span>Brush</span></a></li>
+		      </ul>
+		   </li>
+		   <li class='has-sub'><a href='#'><span>Tools</span></a>
+		      <ul>
+		         <li><a href='#'><span>Eraser</span></a></li>
+		         <li class='last'><a href='#'><span>Smudge</span></a></li>
+		      </ul>
+		   </li>
+		   <li class='middle'><a href='#'><span>Download</span></a></li>
+		   <li class='last'><a href='#'><span>Share</span></a></li>
+		</ul>
+		</div>
+
+		<!-- MAIN CANVAS -->
+		<div id="canvas"></div>
+		
+
     </body>
-        <script src="canvas.js"></script>
+       <script type="text/javascript" src="canvas.js"></script>
 </html>
+
+
