@@ -20,6 +20,7 @@ class StartSocket():
             client, address = self.socket.accept()
             data = client.recv(self.size)
             if data:
+                print(data)
                 client.sendall(data)
             client.close()
 
