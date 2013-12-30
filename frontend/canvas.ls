@@ -53,7 +53,7 @@ do ->
 		# 	points
 		
 		#testing some websocket stuff
-		canvas.connection = new Websocket 'ws://localhost:9002/'
+		canvas.connection = new WebSocket 'ws://localhost:9002/'
 		canvas.connection.onopen = !->
 
 			canvas.connection.send 'lel ur a faget'

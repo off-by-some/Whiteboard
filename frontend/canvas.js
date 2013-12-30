@@ -33,6 +33,16 @@
       canvas.brushRadius = brushRadius;
       canvas.history = [];
       canvas.action = new Action(brushRadius, fillColor, []);
+      canvas.connection = new WebSocket('ws://localhost:9002/');
+      canvas.connection.onopen = function(){
+        canvas.connection.send('lel ur a faget');
+      };
+      canvas.connection.onerror = function(error){
+        console.log('websocket dun goofed: ' + error);
+      };
+      canvas.connection.onmessage = function(e){
+        console.log('server says: ' + e.data);
+      };
       context.fillCircle = function(x, y, radius, fillColor){
         this.fillStyle = fillColor;
         this.beginPath();
@@ -50,6 +60,7 @@
         context.lineTo(x, y);
         canvas.action.coord_data.push([x, y]);
         context.stroke();
+        canvas.connection.send('X:' + x + ' Y:' + y);
       };
       canvas.redraw = function(){
         var i$, ref$, len$, x, j$, ref1$, len1$, y;
