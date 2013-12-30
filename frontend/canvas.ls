@@ -84,17 +84,20 @@ do ->
 			y = e.clientY #- this.offsetTop
 
 
-			context.line-to x, y
+			canvas.context.line-to x, y
 
 			# wireframe-brush context, e, points
 
 			canvas.action.coord_data.push [x,y]
 
 			# Draw all the lines waiting to be drawn
-			context.stroke!
+			canvas.context.stroke!
 
 			# console.log canvas.commands
-			canvas.connection.send 'X:' + x + ' Y:' + y
+			
+			#this is incorrect, but I'mma keep it around for a while
+			#if canvas.connection
+				#canvas.connection.send 'X:' + x + ' Y:' + y
 
 		# CTRL-Z is horribly broken btw, you're welcome!
 		canvas.redraw = !->
@@ -103,8 +106,11 @@ do ->
 			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# Redraw everything in history
 			for x in canvas.history
+				canvas.context.moveTo x.coord_data[0][0][0], x.coord_data[0][0][1]
+				canvas.context.beginPath!
 				for y in x.coord_data
 					context.line-to y[0], y[1]
+				canvas.context.stroke!
 
 		canvas.node.onmousedown = (e) !->
 
@@ -114,6 +120,8 @@ do ->
 			# to connect with the previously drawn line (maybe ctrl click?)
 			# points.push {x: e.clientX, y: e.clientY}
 			context.moveTo e.clientX, e.clientY
+			
+			canvas.context.beginPath!
 
 			# Radius of the pen... i think?
 			context.line-width = 10

@@ -57,25 +57,28 @@
         }
         x = e.clientX;
         y = e.clientY;
-        context.lineTo(x, y);
+        canvas.context.lineTo(x, y);
         canvas.action.coord_data.push([x, y]);
-        context.stroke();
-        canvas.connection.send('X:' + x + ' Y:' + y);
+        canvas.context.stroke();
       };
       canvas.redraw = function(){
         var i$, ref$, len$, x, j$, ref1$, len1$, y;
         canvas.context.clearRect(0, 0, canvas.node.width, canvas.node.height);
         for (i$ = 0, len$ = (ref$ = canvas.history).length; i$ < len$; ++i$) {
           x = ref$[i$];
+          canvas.context.moveTo(x.coord_data[0][0][0], x.coord_data[0][0][1]);
+          canvas.context.beginPath();
           for (j$ = 0, len1$ = (ref1$ = x.coord_data).length; j$ < len1$; ++j$) {
             y = ref1$[j$];
             context.lineTo(y[0], y[1]);
           }
+          canvas.context.stroke();
         }
       };
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
         context.moveTo(e.clientX, e.clientY);
+        canvas.context.beginPath();
         context.lineWidth = 10;
         context.lineJoin = context.lineCap = 'round';
       };
