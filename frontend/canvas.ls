@@ -1,5 +1,6 @@
 class Action
-	(radius, color, coords) ->
+	(id, radius, color, coords) ->
+		@id = id
 		@radius = radius
 		@fillColor = color
 		@coord_data = coords
@@ -31,7 +32,8 @@ do ->
 		# canvas.commands = []
 
 		# The canvas's current action
-		canvas.action = new Action brushRadius, fillColor, []
+		canvas.action = new Action 'self', brushRadius, fillColor, []
+		
 
 		#this is just in here for shits and giggles, it resides in brushes.ls
 
@@ -85,7 +87,6 @@ do ->
 			x = e.clientX #- this.offsetLeft
 			y = e.clientY #- this.offsetTop
 
-
 			canvas.context.line-to x, y
 
 			# wireframe-brush context, e, points
@@ -100,18 +101,31 @@ do ->
 			canvas.connection.send {'X' : x , ' Y': y}
 
 
-		# CTRL-Z is horribly broken btw, you're welcome!
 		canvas.redraw = !->
 
 			# Clear the screen
 			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# Redraw everything in history
 			for x in canvas.history
+				canvas.context.strokeStyle = x.fillColor
+				canvas.context.line-width = x.radius
 				canvas.context.moveTo x.coord_data[0][0][0], x.coord_data[0][0][1]
 				canvas.context.beginPath!
 				for y in x.coord_data
 					context.line-to y[0], y[1]
 				canvas.context.stroke!
+				canvas.context.closePath!
+		
+		canvas.undo = (user_id) !->
+
+			if user_id == 'self'
+				canvas.history.pop!
+			else
+				for i from canvas.history.length to 0 by 1
+					if canvas.history[i].id = user_id
+						canvas.history = canvas.history.splice i 1
+				
+			canvas.redraw!
 
 		canvas.node.onmousedown = (e) !->
 
@@ -122,25 +136,31 @@ do ->
 			# points.push {x: e.clientX, y: e.clientY}
 			context.moveTo e.clientX, e.clientY
 			
+			# Set the line's color from the brush's color
+			canvas.context.strokeStyle = canvas.action.fillColor
+			
+			# Start a new path, because we're on a new action
 			canvas.context.beginPath!
-
-			# Radius of the pen... i think?
-			context.line-width = 10
+			
+			# Set the line width from the brush's current radius
+			canvas.context.line-width = canvas.action.radius
 
 			# get rid of those nasty turns
-			context.line-join = context.line-cap = 'round'
+			canvas.context.line-join = context.line-cap = 'round'
 
 
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
 
-			tempAction = (new Action canvas.action.radius,
+			tempAction = (new Action 'self', canvas.action.radius,
 				canvas.action.fillColor, [x for x in canvas.action.coord_data])
 
 			canvas.history.push tempAction
 
 			canvas.action.coord_data = []
+			
+			canvas.context.closePath!
 
 		window.onkeydown = (e) !->
 
@@ -152,12 +172,20 @@ do ->
 			switch e.keyCode
 			case 90
 				if canvas.ctrlActivated
-					canvas.history.pop!
-					canvas.redraw!
+					canvas.undo 'self'
 
 			if e.ctrlKey
 				canvas.ctrlActivated = false
+				
+		(document.getElementById 'color-value').onkeypress = (e) !->
+
+			canvas.action.fillColor = this.value
+			
+		(document.getElementById 'radius-value').onkeypress = (e) !->
+
+			canvas.action.radius = this.value
 
 	container = document.getElementById 'canvas'
+	
 
-	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 5
+	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 10

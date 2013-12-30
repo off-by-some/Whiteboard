@@ -4,7 +4,8 @@
   Action = (function(){
     Action.displayName = 'Action';
     var prototype = Action.prototype, constructor = Action;
-    function Action(radius, color, coords){
+    function Action(id, radius, color, coords){
+      this.id = id;
       this.radius = radius;
       this.fillColor = color;
       this.coord_data = coords;
@@ -32,10 +33,10 @@
       points = {};
       canvas.brushRadius = brushRadius;
       canvas.history = [];
-      canvas.action = new Action(brushRadius, fillColor, []);
+      canvas.action = new Action('self', brushRadius, fillColor, []);
       canvas.connection = new WebSocket('ws://localhost:9002/');
       canvas.connection.onopen = function(){
-        canvas.connection.send('lel ur a faget');
+        canvas.connection.send('testing');
       };
       canvas.connection.onerror = function(error){
         console.log('websocket dun goofed: ' + error);
@@ -60,12 +61,18 @@
         canvas.context.lineTo(x, y);
         canvas.action.coord_data.push([x, y]);
         canvas.context.stroke();
+        canvas.connection.send({
+          'X': x,
+          ' Y': y
+        });
       };
       canvas.redraw = function(){
         var i$, ref$, len$, x, j$, ref1$, len1$, y;
         canvas.context.clearRect(0, 0, canvas.node.width, canvas.node.height);
         for (i$ = 0, len$ = (ref$ = canvas.history).length; i$ < len$; ++i$) {
           x = ref$[i$];
+          canvas.context.strokeStyle = x.fillColor;
+          canvas.context.lineWidth = x.radius;
           canvas.context.moveTo(x.coord_data[0][0][0], x.coord_data[0][0][1]);
           canvas.context.beginPath();
           for (j$ = 0, len1$ = (ref1$ = x.coord_data).length; j$ < len1$; ++j$) {
@@ -73,19 +80,35 @@
             context.lineTo(y[0], y[1]);
           }
           canvas.context.stroke();
+          canvas.context.closePath();
         }
+      };
+      canvas.undo = function(user_id){
+        var i$, i;
+        if (user_id === 'self') {
+          canvas.history.pop();
+        } else {
+          for (i$ = canvas.history.length; i$ <= 0; ++i$) {
+            i = i$;
+            if (canvas.history[i].id = user_id) {
+              canvas.history = canvas.history.splice(i(1));
+            }
+          }
+        }
+        canvas.redraw();
       };
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
         context.moveTo(e.clientX, e.clientY);
+        canvas.context.strokeStyle = canvas.action.fillColor;
         canvas.context.beginPath();
-        context.lineWidth = 10;
-        context.lineJoin = context.lineCap = 'round';
+        canvas.context.lineWidth = canvas.action.radius;
+        canvas.context.lineJoin = context.lineCap = 'round';
       };
       canvas.node.onmouseup = function(e){
         var tempAction, x;
         canvas.isDrawing = false;
-        tempAction = new Action(canvas.action.radius, canvas.action.fillColor, (function(){
+        tempAction = new Action('self', canvas.action.radius, canvas.action.fillColor, (function(){
           var i$, ref$, len$, results$ = [];
           for (i$ = 0, len$ = (ref$ = canvas.action.coord_data).length; i$ < len$; ++i$) {
             x = ref$[i$];
@@ -95,6 +118,7 @@
         }()));
         canvas.history.push(tempAction);
         canvas.action.coord_data = [];
+        canvas.context.closePath();
       };
       window.onkeydown = function(e){
         if (e.ctrlKey) {
@@ -105,16 +129,21 @@
         switch (e.keyCode) {
         case 90:
           if (canvas.ctrlActivated) {
-            canvas.history.pop();
-            canvas.redraw();
+            canvas.undo('self');
           }
         }
         if (e.ctrlKey) {
           canvas.ctrlActivated = false;
         }
       };
+      document.getElementById('color-value').onkeypress = function(e){
+        canvas.action.fillColor = this.value;
+      };
+      document.getElementById('radius-value').onkeypress = function(e){
+        canvas.action.radius = this.value;
+      };
     };
     container = document.getElementById('canvas');
-    return init(container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 5);
+    return init(container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 10);
   })();
 }).call(this);
