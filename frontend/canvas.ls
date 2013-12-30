@@ -51,6 +51,20 @@ do ->
 		# 	context.stroke!
 
 		# 	points
+		
+		#testing some websocket stuff
+		canvas.connection = new Websocket 'ws://localhost:9002/'
+		canvas.connection.onopen = !->
+
+			canvas.connection.send 'lel ur a faget'
+		
+		canvas.connection.onerror = (error) !->
+
+			console.log 'websocket dun goofed: ' + error
+			
+		canvas.connection.onmessage = (e) !->
+
+			console.log 'server says: ' + e.data
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
@@ -80,6 +94,7 @@ do ->
 			context.stroke!
 
 			# console.log canvas.commands
+			canvas.connection.send 'X:' + x + ' Y:' + y
 
 		# CTRL-Z is horribly broken btw, you're welcome!
 		canvas.redraw = !->
