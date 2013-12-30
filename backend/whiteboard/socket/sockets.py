@@ -14,7 +14,7 @@ class StartSocket():
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def start(self):
-        self.socket.bind(self.host, self.port)
+        self.socket.bind((self.host, self.port))
         self.socket.listen(self.backlog)
         while 1:
             client, address = self.socket.accept()
@@ -26,7 +26,9 @@ class StartSocket():
 # We need to open a thread, so the backend may resume doing its thing
 
 x = StartSocket()
-x.start()
+
 print("Listening on %s:%s" % (x.host, str(x.port)))
+
+x.start()
 
 # thread.start_new_thread(x.start)
