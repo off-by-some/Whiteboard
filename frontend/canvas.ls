@@ -185,6 +185,10 @@ do ->
 
 			canvas.action.radius = this.value
 
+		(document.getElementById 'download').onclick = (e) !->
+
+			window.open (canvas.node.toDataURL!), 'Download' 
+
 	container = document.getElementById 'canvas'
 	
 

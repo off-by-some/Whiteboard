@@ -142,6 +142,9 @@
       document.getElementById('radius-value').onkeypress = function(e){
         canvas.action.radius = this.value;
       };
+      document.getElementById('download').onclick = function(e){
+        window.open(canvas.node.toDataURL(), 'Download');
+      };
     };
     container = document.getElementById('canvas');
     return init(container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 10);
