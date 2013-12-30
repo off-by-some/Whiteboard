@@ -20,3 +20,7 @@ CoordinateResource.mount('/whiteboard/', application)
 from whiteboard.user.resources import UsernameResource
 
 UsernameResource.mount('/whiteboard/', application)
+
+from whiteboard.room.resources import RoomResource
+
+RoomResource.mount('/whiteboard', application)
