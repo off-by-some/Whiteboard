@@ -56,8 +56,10 @@ do ->
 		canvas.connection = new WebSocket 'ws://localhost:9002/'
 		canvas.connection.onopen = !->
 
-			canvas.connection.send 'lel ur a faget'
+			canvas.connection.send 'testing'
 		
+		# IT WORKS!
+
 		canvas.connection.onerror = (error) !->
 
 			console.log 'websocket dun goofed: ' + error
@@ -94,7 +96,7 @@ do ->
 			context.stroke!
 
 			# console.log canvas.commands
-			canvas.connection.send 'X:' + x + ' Y:' + y
+			canvas.connection.send {'X' : x , ' Y': y}
 
 		# CTRL-Z is horribly broken btw, you're welcome!
 		canvas.redraw = !->
