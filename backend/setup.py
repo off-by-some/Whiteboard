@@ -18,5 +18,7 @@ setup(
          'anyjson',
 
          'shortuuid',
+
+         'ws4py',
     ]
 )
