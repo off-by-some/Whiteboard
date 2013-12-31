@@ -38,12 +38,12 @@ class Brush
 		@canvas.context.stroke!
 		
 	doAction: (data) !->
-		
-		@actionStart data[0][0], data[0][1]
-		for p in data
-			@canvas.context.line-to p[0], p[1]
-		@canvas.context.stroke!
-		@actionEnd!
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for p in data
+				@canvas.context.line-to p[0], p[1]
+			@canvas.context.stroke!
+			@actionEnd!
 
 class WireframeBrush extends Brush
 	(radius, color, canvas) ->
@@ -77,16 +77,16 @@ class WireframeBrush extends Brush
 		
 
 	doAction: (data) !->
-		
-		@actionStart data[0][0], data[0][1]
-		for i from 1 til data.length by 1
-			@canvas.context.lineTo data[i][0], data[i][1]
-			nearpoint = data[i-5]
-			if nearpoint
-				@canvas.context.moveTo nearpoint[0], nearpoint[1]
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for i from 1 til data.length by 1
 				@canvas.context.lineTo data[i][0], data[i][1]
-		@canvas.context.stroke!
-		@actionEnd!
+				nearpoint = data[i-5]
+				if nearpoint
+					@canvas.context.moveTo nearpoint[0], nearpoint[1]
+					@canvas.context.lineTo data[i][0], data[i][1]
+			@canvas.context.stroke!
+			@actionEnd!
 
 class ColorSamplerBrush extends Brush
 	(radius, color, canvas) ->
@@ -130,6 +130,10 @@ class Action
 		@fillColor = color
 		@coord_data = coords
 
+class User
+	(id) ->
+		@id = id
+
 do ->
 	createCanvas = (parent, width=100, height=100) ->
 
@@ -155,6 +159,9 @@ do ->
 
 		# The current buffer of commands
 		# canvas.commands = []
+		
+		# The current list of users
+		canvas.users = []
 
 		# The canvas's current action
 		canvas.action = new Action 'self', 'default', brushRadius, fillColor, []
@@ -195,6 +202,9 @@ do ->
 		canvas.connection.onmessage = (e) !->
 
 			console.log 'server says: ' + e.data
+			message = JSON.parse(data)
+			
+			
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
