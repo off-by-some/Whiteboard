@@ -1,41 +1,75 @@
-class Brush
+cclass Brush
 	(radius, color, canvas) ->
 	
 		@type = "default"
+		@isTool = false
 		@radius = radius
 		@color = color
-		@context = context
+		@canvas = canvas
 		
-	actionStart: (x, y) ->
+	actionStart: (x, y) !->
 		
-		canvas.context.moveTo x, y
-		canvas.context.strokeStyle = color
-		canvas.context.line-width = radius
-		canvas.context.beginPath!
+		@canvas.context.moveTo x, y
+		# Set the line's color from the brush's color
+		@canvas.context.strokeStyle = @canvas.action.fillColor
+		
+		# Start a new path, because we're on a new action
+		@canvas.context.beginPath!
+		
+		# Set the line width from the brush's current radius
+		@canvas.context.line-width = @canvas.action.radius
+
+		# get rid of those nasty turns
+		@canvas.context.line-join = @canvas.context.line-cap = 'round'
 	
-	actionEnd: ->
+	actionEnd: !->
 		
-		canvas.context.endPath!
+		@canvas.context.closePath!
 	
-	actionMove: (x, y) ->
+	actionMove: (x, y) !->
 		
-		canvas.context.line-to x, y
-		canvas.context.stroke!
+		@canvas.context.line-to x, y
+		@canvas.context.stroke!
+		
+	doAction: (data) !->
+		
+		@actionStart data[0][0], data[0][1]
+		for p in data
+			@canvas.context.line-to p[0], p[1]
+		@canvas.context.stroke!
+		@actionEnd!
 
 class ColorSamplerBrush extends Brush
-	actionStart: (x, y) ->
+	(radius, color, canvas) ->
 	
-		p = (context.getImageData x, y, 1, 1).data
-		hex = "#" + (("000000" + (((p[0] << 16) | (p[1] << 8) | p[2]).toString 16)).slice -6)
+		@type = "sampler"
+		@isTool = true
+		@radius = radius
+		@color = color
+		@canvas = canvas
+		
+	actionStart: (x, y) !->
+	
+		p = (@canvas.context.getImageData x, y, 1, 1).data
+		hex = "#" + (("000000" + (((p[0] << 16) .|. (p[1] << 8) .|. p[2]).toString 16)).slice -6)
 		color = hex
 		canvas.doColorChange color
 	
-	actionEnd: ->
+	actionEnd: !->
 		#lel I dunno, just something ought to be here
 		color = color
 		
-	actionMove: (x, y) ->
+	actionMove: (x, y) !->
 		actionStart x y
+		
+	doAction: (data) !->
+		#I really should see about just voiding these or something...
+		data[0][0]
+
+
+getBrush = (brushtype, radius, color, canvas) ->
+	| brushtype == 'default' => new Brush radius, color, canvas
+	| brushtype == 'sampler' => new Brush radius, color, canvas
 
 
 """wireframe-brush = (context, event, points) ->
