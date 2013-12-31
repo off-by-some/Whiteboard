@@ -88,3 +88,27 @@ getBrush = (brushtype, radius, color, canvas) ->
 	context.stroke!
 
 	points"""
+
+"""
+sketch-brush = (context, event, points) ->
+
+	points.push [x:event.clientX, y: event.clientY]
+	context.moveTo points[points.length - 2].x, points[points.length - 2].y
+	context.lineTo points[points.length - 1].x, points[points.length - 1].y
+	context.stroke!
+
+	lastPoint = points[points.length-1]
+
+	for i in points
+		dx = points[i].x - lastPoint.x;
+		dy = points[i].y - lastPoint.y;
+		d = dx * dx + dy * dy;
+
+		if d < 1000
+			context.beginPath()
+			context.strokeStyle = 'rgba(0,0,0,0.3)'
+			context.moveTo(lastPoint.x + (dx * 0.2), lastPoint.y + (dy * 0.2))
+			context.ctx.lineTo(points[i].x - (dx * 0.2), points[i].y - (dy * 0.2))
+			context.stroke!
+
+"""
