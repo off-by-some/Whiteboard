@@ -23,7 +23,7 @@ class Brush
 		@canvas.context.beginPath!
 		
 		# Set the line width from the brush's current radius
-		@canvas.context.line-width = @canvas.action.radius
+		@canvas.context.line-width = @radius
 
 		# get rid of those nasty turns
 		@canvas.context.line-join = @canvas.context.line-cap = 'round'
@@ -61,7 +61,7 @@ class WireframeBrush extends Brush
 		@canvas.context.beginPath!
 		
 		# Set the line width from the brush's current radius
-		@canvas.context.line-width = @canvas.action.radius
+		@canvas.context.line-width = @radius
 	
 	actionEnd: !->
 		
@@ -266,6 +266,8 @@ do ->
 			canvas.action.coord_data = []
 			
 			canvas.brush.actionEnd!
+			
+			canvas.redraw!
 			
 		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->

@@ -15,7 +15,7 @@
       this.canvas.context.moveTo(x, y);
       this.canvas.context.strokeStyle = this.color;
       this.canvas.context.beginPath();
-      this.canvas.context.lineWidth = this.canvas.action.radius;
+      this.canvas.context.lineWidth = this.radius;
       this.canvas.context.lineJoin = this.canvas.context.lineCap = 'round';
     };
     prototype.actionEnd = function(){
@@ -47,7 +47,7 @@
       this.canvas.context.moveTo(x, y);
       this.canvas.context.strokeStyle = this.color;
       this.canvas.context.beginPath();
-      this.canvas.context.lineWidth = this.canvas.action.radius;
+      this.canvas.context.lineWidth = this.radius;
     };
     prototype.actionEnd = function(){
       this.canvas.context.closePath();
@@ -225,6 +225,7 @@
         canvas.history.push(tempAction);
         canvas.action.coord_data = [];
         canvas.brush.actionEnd();
+        canvas.redraw();
       };
       canvas.doColorChange = function(color){
         document.getElementById('color-value').value = color;
