@@ -17,7 +17,7 @@ class Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = @canvas.action.fillColor
+		@canvas.context.strokeStyle = @color
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -45,14 +45,54 @@ class Brush
 		@canvas.context.stroke!
 		@actionEnd!
 
+class WireframeBrush extends Brush
+	(radius, color, canvas) ->
+	
+		super ...
+		@type = "wireframe"
+
+	actionStart: (x, y) !->
+		
+		@canvas.context.moveTo x, y
+		# Set the line's color from the brush's color
+		@canvas.context.strokeStyle = @color
+		
+		# Start a new path, because we're on a new action
+		@canvas.context.beginPath!
+		
+		# Set the line width from the brush's current radius
+		@canvas.context.line-width = @canvas.action.radius
+	
+	actionEnd: !->
+		
+		@canvas.context.closePath!
+	
+	actionMove: (x, y) !->
+	
+		@canvas.context.line-to x, y
+		numpoints = @canvas.action.coord_data.length
+		if numpoints >= 4
+			@canvas.context.lineTo @canvas.action.coord_data[numpoints-4][0], @canvas.action.coord_data[numpoints-4][1]
+		@canvas.context.stroke!
+		
+
+	doAction: (data) !->
+		
+		@actionStart data[0][0], data[0][1]
+		for i from 1 til data.length by 1
+			@canvas.context.lineTo data[i][0], data[i][1]
+			nearpoint = data[i-5]
+			if nearpoint
+				@canvas.context.moveTo nearpoint[0], nearpoint[1]
+				@canvas.context.lineTo data[i][0], data[i][1]
+		@canvas.context.stroke!
+		@actionEnd!
+
 class ColorSamplerBrush extends Brush
 	(radius, color, canvas) ->
 	
+		super ...
 		@type = "sampler"
-		@isTool = true
-		@radius = radius
-		@color = color
-		@canvas = canvas
 		
 	actionStart: (x, y) !->
 	
@@ -66,20 +106,19 @@ class ColorSamplerBrush extends Brush
 		@canvas.doColorChange hex
 	
 	actionEnd: !->
-		#lel I dunno, just something ought to be here
-		color = color
+		return
 		
 	actionMove: (x, y) !->
 		@actionStart x, y
 		
 	doAction: (data) !->
-		#I really should see about just voiding these or something...
-		data[0][0]
+		return
 
 
 getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'default' => new Brush radius, color, canvas
-	| brushtype == 'sampler' => new Brush radius, color, canvas
+	| brushtype == 'wireframe' => new WireframeBrush radius, color, canvas
+	| brushtype == 'sampler' => new ColorSamplerBrush radius, color, canvas
 
 
 
@@ -269,6 +308,10 @@ do ->
 		(document.getElementById 'pencil-brush').onclick = (e) !->
 
 			canvas.brush = new Brush canvas.action.radius, canvas.action.fillColor, canvas
+
+		(document.getElementById 'wireframe-brush').onclick = (e) !->
+
+			canvas.brush = new WireframeBrush canvas.action.radius, canvas.action.fillColor, canvas
 
 
 	container = document.getElementById 'canvas'
