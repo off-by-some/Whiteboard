@@ -162,6 +162,12 @@ do ->
 			canvas.action.coord_data = []
 			
 			canvas.context.closePath!
+			
+		# Right now, only the color sampler uses this.
+		canvas.doColorChange = (color) !->
+			(document.getElementById 'color-value').value = color
+			canvas.action.fillColor = color
+			canvas.action.brush.color = color
 
 		window.onkeydown = (e) !->
 

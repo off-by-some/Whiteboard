@@ -120,6 +120,11 @@
         canvas.action.coord_data = [];
         canvas.context.closePath();
       };
+      canvas.doColorChange = function(color){
+        document.getElementById('color-value').value = color;
+        canvas.action.fillColor = color;
+        canvas.action.brush.color = color;
+      };
       window.onkeydown = function(e){
         if (e.ctrlKey) {
           canvas.ctrlActivated = true;
