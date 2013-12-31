@@ -7,7 +7,7 @@ Whiteboard is an online drawing application that allows users to draw in real ti
 How to install:
 ---------------
 
-currently, you should install any deps, for the front end, we only require LiveScript, and installing dependencies for the backend is quite simple.
+Currently, you should install any deps, for the front end, we only require [LiveScript] [1], and installing dependencies for the backend is quite simple.
 
 First off, you will need an install of mySQL, make sure you have that before proceeding.
 
@@ -61,3 +61,6 @@ then we simply run the backend:
 
 
 And thats it! Whiteboard is now functional!
+
+
+[1]: http://livescript.net/ "LiveScript"
