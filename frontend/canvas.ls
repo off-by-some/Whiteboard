@@ -100,7 +100,8 @@ do ->
 
 			canvas.connection.send {'X' : x , ' Y': y}
 
-
+		# TODO: Make something that keeps a frame for every 75 actions or so
+		# so that we only have to draw 74 actions, instead of ALL of them
 		canvas.redraw = !->
 
 			# Clear the screen
