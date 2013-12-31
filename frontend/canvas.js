@@ -25,6 +25,14 @@
       this.canvas.context.lineTo(x, y);
       this.canvas.context.stroke();
     };
+    prototype.actionMoveData = function(data){
+      var i$, len$, p;
+      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
+        p = data[i$];
+        this.canvas.context.lineTo(p[0], p[1]);
+      }
+      this.canvas.context.stroke();
+    };
     prototype.doAction = function(data){
       var i$, len$, p;
       if (data.length !== 0) {
@@ -60,6 +68,19 @@
       numpoints = this.canvas.action.coord_data.length;
       if (numpoints >= 4) {
         this.canvas.context.lineTo(this.canvas.action.coord_data[numpoints - 4][0], this.canvas.action.coord_data[numpoints - 4][1]);
+      }
+      this.canvas.context.stroke();
+    };
+    prototype.actionMoveData = function(data){
+      var i$, to$, i, nearpoint;
+      for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
+        i = i$;
+        this.canvas.context.lineTo(data[i][0], data[i][1]);
+        nearpoint = data[i - 5];
+        if (nearpoint) {
+          this.canvas.context.moveTo(nearpoint[0], nearpoint[1]);
+          this.canvas.context.lineTo(data[i][0], data[i][1]);
+        }
       }
       this.canvas.context.stroke();
     };
@@ -103,6 +124,7 @@
     prototype.actionMove = function(x, y){
       this.actionStart(x, y);
     };
+    prototype.actionMoveData = function(data){};
     prototype.doAction = function(data){
       return;
     };
@@ -157,22 +179,71 @@
       canvas = createCanvas(container, width, height);
       context = canvas.context;
       points = {};
+      canvas.id = "self0";
       canvas.brushRadius = brushRadius;
       canvas.history = [];
-      canvas.users = [];
+      canvas.users = {};
       canvas.action = new Action('self', 'default', brushRadius, fillColor, []);
       canvas.brush = new Brush(brushRadius, fillColor, canvas);
       canvas.connection = new WebSocket('ws://localhost:9002/');
       canvas.connection.onopen = function(){
-        canvas.connection.send('testing');
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'join'
+        }));
+        return;
       };
       canvas.connection.onerror = function(error){
         console.log('websocket dun goofed: ' + error);
       };
       canvas.connection.onmessage = function(e){
-        var message;
-        console.log('server says: ' + e.data);
-        message = JSON.parse(data);
+        var message, cur_user, tempAction, x;
+        message = JSON.parse(e.data);
+        if (message.id) {
+          switch (message.action) {
+          case 'join':
+            canvas.users[message.id] = new User(message.id);
+            canvas.users[message.id].brush = new Brush(10, '#000000', canvas);
+            canvas.users[message.id].action = new Action(message.id, 'default', 10);
+            break;
+          case 'action-start':
+            cur_user = canvas.users[message.id];
+            cur_user.action = new Action(message.id, cur_user.brush.type, message.data.radius, message.data.fillColor, []);
+            break;
+          case 'action-data':
+            canvas.users[message.id].action.coord_data.push(message.data);
+            canvas.userdraw(message.id, message.data[0], message.data[1]);
+            break;
+          case 'action-end':
+            cur_user = canvas.users[message.id];
+            tempAction = new Action(message.id, cur_user.brush.type, cur_user.action.radius, cur_user.action.fillColor, (function(){
+              var i$, ref$, len$, results$ = [];
+              for (i$ = 0, len$ = (ref$ = cur_user.action.coord_data).length; i$ < len$; ++i$) {
+                x = ref$[i$];
+                results$.push(x);
+              }
+              return results$;
+            }()));
+            canvas.history.push(tempAction);
+            break;
+          case 'undo':
+            canvas.undo(message.id);
+            break;
+          case 'radius-change':
+            canvas.users[message.id].brush.radius = message.data;
+            canvas.users[message.id].action.radius = message.data;
+            break;
+          case 'color-change':
+            canvas.users[message.id].brush.color = message.data;
+            canvas.users[message.id].action.fillColor = message.data;
+            break;
+          case 'brush-change':
+            cur_user = canvas.users[message.id];
+            cur_user.brush = getBrush(message.data, cur_user.action.radius, cur_user.action.fillColor, canvas);
+          }
+        } else {
+          console.log("server says: " + e.data);
+        }
       };
       context.fillCircle = function(x, y, radius, fillColor){
         this.fillStyle = fillColor;
@@ -180,6 +251,22 @@
         this.moveTo(x, y);
         this.arc(x, y, radius, 0, Math.PI * 2, false);
         this.fill();
+      };
+      canvas.userdraw = function(user_id, x, y){
+        var temp_user, ref$, tempcoords;
+        temp_user = canvas.users[user_id];
+        if (!temp_user.brush.isTool) {
+          if (canvas.isDrawing) {
+            canvas.brush.actionEnd();
+          }
+          [(ref$ = temp_user.action.coord_data.push)[x], ref$[y]];
+          temp_user.brush.doAction(temp_user.action.coord_data);
+          if (canvas.isDrawing) {
+            tempcoords = canvas.action.coord_data[0];
+            canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
+            canvas.brush.actionMoveData(canvas.action.coord_data);
+          }
+        }
       };
       canvas.node.onmousemove = function(e){
         var x, y;
@@ -190,10 +277,11 @@
         y = e.clientY;
         canvas.brush.actionMove(x, y);
         canvas.action.coord_data.push([x, y]);
-        canvas.connection.send({
-          'X': x,
-          ' Y': y
-        });
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'action-data',
+          data: [x, y]
+        }));
       };
       canvas.redraw = function(){
         var tempBrush, i$, ref$, len$, x;
@@ -209,15 +297,27 @@
         canvas.brush = tempBrush;
       };
       canvas.undo = function(user_id){
-        var i$, i;
+        var i$, i, tempcoords;
         if (user_id === 'self') {
           canvas.history.pop();
+          canvas.connection.send(JSON.stringify({
+            id: canvas.id,
+            action: 'undo'
+          }));
         } else {
+          if (canvas.isDrawing) {
+            canvas.brush.actionEnd();
+          }
           for (i$ = canvas.history.length; i$ <= 0; ++i$) {
             i = i$;
             if (canvas.history[i].id = user_id) {
               canvas.history = canvas.history.splice(i(1));
             }
+          }
+          if (canvas.isDrawing) {
+            tempcoords = canvas.action.coord_data[0];
+            canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
+            canvas.brush.actionMoveData(canvas.action.coord_data);
           }
         }
         canvas.redraw();
@@ -225,6 +325,14 @@
       canvas.node.onmousedown = function(e){
         canvas.isDrawing = true;
         canvas.brush.actionStart(e.clientX, e.clientY);
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'action-start',
+          data: {
+            radius: canvas.action.radius,
+            fillColor: canvas.action.fillColor
+          }
+        }));
       };
       canvas.node.onmouseup = function(e){
         var tempAction, x;
@@ -241,11 +349,20 @@
         canvas.action.coord_data = [];
         canvas.brush.actionEnd();
         canvas.redraw();
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'action-end'
+        }));
       };
       canvas.doColorChange = function(color){
         document.getElementById('color-value').value = color;
         canvas.action.fillColor = color;
         canvas.brush.color = color;
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'color-change',
+          data: color
+        }));
       };
       window.onkeydown = function(e){
         if (e.ctrlKey) {
@@ -269,18 +386,38 @@
       document.getElementById('radius-value').onkeypress = function(e){
         canvas.action.radius = this.value;
         canvas.brush.radius = this.value;
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'radius-change',
+          data: this.value
+        }));
       };
       document.getElementById('download').onclick = function(e){
         window.open(canvas.node.toDataURL(), 'Download');
       };
       document.getElementById('csampler').onclick = function(e){
         canvas.brush = new ColorSamplerBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'brush-change',
+          data: 'sampler'
+        }));
       };
       document.getElementById('pencil-brush').onclick = function(e){
         canvas.brush = new Brush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'brush-change',
+          data: 'default'
+        }));
       };
       document.getElementById('wireframe-brush').onclick = function(e){
         canvas.brush = new WireframeBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.connection.send(JSON.stringify({
+          id: canvas.id,
+          action: 'brush-change',
+          data: 'wireframe'
+        }));
       };
     };
     container = document.getElementById('canvas');
