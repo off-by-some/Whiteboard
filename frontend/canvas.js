@@ -168,6 +168,7 @@
       canvas.node = document.createElement('canvas');
       canvas.node.width = width;
       canvas.node.height = height;
+      canvas.node.style.cursor = 'url("content/cursor_pencil.png"), url("content/cursor_pencil.cur"), pointer';
       canvas.context = canvas.node.getContext('2d');
       parent.appendChild(canvas.node);
       return canvas;
@@ -395,6 +396,7 @@
       };
       document.getElementById('csampler').onclick = function(e){
         canvas.brush = new ColorSamplerBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.node.style.cursor = 'url("content/cursor_pipet.png"), url("content/cursor_pipet.cur"), pointer';
         canvas.connection.send(JSON.stringify({
           id: canvas.id,
           action: 'brush-change',
@@ -403,6 +405,7 @@
       };
       document.getElementById('pencil-brush').onclick = function(e){
         canvas.brush = new Brush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.node.style.cursor = 'url("content/cursor_pencil.png"), url("content/cursor_pencil.cur"), pointer';
         canvas.connection.send(JSON.stringify({
           id: canvas.id,
           action: 'brush-change',
@@ -411,6 +414,7 @@
       };
       document.getElementById('wireframe-brush').onclick = function(e){
         canvas.brush = new WireframeBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+        canvas.node.style.cursor = 'url("content/cursor_wireframe.png"), url("content/cursor_wireframe.cur"), pointer';
         canvas.connection.send(JSON.stringify({
           id: canvas.id,
           action: 'brush-change',

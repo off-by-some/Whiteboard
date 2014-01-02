@@ -156,6 +156,7 @@ do ->
 		canvas.node = document.createElement 'canvas'
 		canvas.node.width = width
 		canvas.node.height = height
+		canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 		canvas.context = canvas.node.getContext '2d'
 		parent.appendChild canvas.node
 		canvas
@@ -373,16 +374,19 @@ do ->
 		(document.getElementById 'csampler').onclick = (e) !->
 
 			canvas.brush = new ColorSamplerBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sampler'}
 
 		(document.getElementById 'pencil-brush').onclick = (e) !->
 
 			canvas.brush = new Brush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'default'}
 
 		(document.getElementById 'wireframe-brush').onclick = (e) !->
 
 			canvas.brush = new WireframeBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
 
 
