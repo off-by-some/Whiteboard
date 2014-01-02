@@ -111,11 +111,10 @@ class ColorSamplerBrush extends Brush
 	
 		p = (@canvas.context.getImageData x, y, 1, 1).data
 		
-		r = ("0" + (p[0].toString 16)).slice -2
-		g = ("0" + (p[1].toString 16)).slice -2
-		b = ("0" + (p[2].toString 16)).slice -2
+		# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
+		a = p[3] / 255.0
 		
-		hex = "#" + r + g + b
+		hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
 		@canvas.doColorChange hex
 	
 	actionEnd: !->
@@ -261,7 +260,6 @@ do ->
 
 		canvas.node.onmousemove = (e) !->
 
-
 			return unless canvas.isDrawing
 
 			x = e.clientX #- this.offsetLeft
@@ -391,4 +389,4 @@ do ->
 	container = document.getElementById 'canvas'
 	
 
-	init container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 10
+	init container, window.innerWidth - 17, window.innerHeight - 45, 'rgba(0,0,0,1.0)', 10

@@ -110,12 +110,10 @@
       this.type = "sampler";
     }
     prototype.actionStart = function(x, y){
-      var p, r, g, b, hex;
+      var p, a, hex;
       p = this.canvas.context.getImageData(x, y, 1, 1).data;
-      r = ("0" + p[0].toString(16)).slice(-2);
-      g = ("0" + p[1].toString(16)).slice(-2);
-      b = ("0" + p[2].toString(16)).slice(-2);
-      hex = "#" + r + g + b;
+      a = p[3] / 255.0;
+      hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
       this.canvas.doColorChange(hex);
     };
     prototype.actionEnd = function(){
@@ -421,7 +419,7 @@
       };
     };
     container = document.getElementById('canvas');
-    return init(container, window.innerWidth - 17, window.innerHeight - 45, '#000000', 10);
+    return init(container, window.innerWidth - 17, window.innerHeight - 45, 'rgba(0,0,0,1.0)', 10);
   })();
   function extend$(sub, sup){
     function fun(){} fun.prototype = (sub.superclass = sup).prototype;
