@@ -305,18 +305,17 @@ do ->
 		canvas.undo = (user_id) !->
 
 			if user_id == 'self'
-				canvas.history.pop!
 				canvas.connection.send JSON.stringify {id:canvas.id, action:'undo'}
-			else
-				if canvas.isDrawing
-					canvas.brush.actionEnd!
-				for i from canvas.history.length to 0 by 1
-					if canvas.history[i].id = user_id
-						canvas.history = canvas.history.splice i 1
-				if canvas.isDrawing
-					tempcoords = canvas.action.coord_data[0]
-					canvas.brush.actionStart tempcoords[0], tempcoords[1]
-					canvas.brush.actionMoveData canvas.action.coord_data
+			if canvas.isDrawing
+				canvas.brush.actionEnd!
+			for i from (canvas.history.length - 1) to 0 by -1
+				if canvas.history[i].id = user_id
+					canvas.history.splice i, 1
+					break
+			if canvas.isDrawing
+				tempcoords = canvas.action.coord_data[0]
+				canvas.brush.actionStart tempcoords[0], tempcoords[1]
+				canvas.brush.actionMoveData canvas.action.coord_data
 				
 			canvas.redraw!
 

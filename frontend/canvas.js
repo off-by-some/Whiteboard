@@ -315,26 +315,25 @@
       canvas.undo = function(user_id){
         var i$, i, tempcoords;
         if (user_id === 'self') {
-          canvas.history.pop();
           canvas.connection.send(JSON.stringify({
             id: canvas.id,
             action: 'undo'
           }));
-        } else {
-          if (canvas.isDrawing) {
-            canvas.brush.actionEnd();
+        }
+        if (canvas.isDrawing) {
+          canvas.brush.actionEnd();
+        }
+        for (i$ = canvas.history.length - 1; i$ >= 0; --i$) {
+          i = i$;
+          if (canvas.history[i].id = user_id) {
+            canvas.history.splice(i, 1);
+            break;
           }
-          for (i$ = canvas.history.length; i$ <= 0; ++i$) {
-            i = i$;
-            if (canvas.history[i].id = user_id) {
-              canvas.history = canvas.history.splice(i(1));
-            }
-          }
-          if (canvas.isDrawing) {
-            tempcoords = canvas.action.coord_data[0];
-            canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
-            canvas.brush.actionMoveData(canvas.action.coord_data);
-          }
+        }
+        if (canvas.isDrawing) {
+          tempcoords = canvas.action.coord_data[0];
+          canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
+          canvas.brush.actionMoveData(canvas.action.coord_data);
         }
         canvas.redraw();
       };
