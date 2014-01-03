@@ -17,7 +17,7 @@ class Brush
 		@canvas.context.beginPath!
 		
 		# Set the line width from the brush's current radius
-		@canvas.context.line-width = @canvas.action.radius
+		@canvas.context.line-width = @radius
 
 		# get rid of those nasty turns
 		@canvas.context.line-join = @canvas.context.line-cap = 'round'
@@ -30,14 +30,19 @@ class Brush
 		
 		@canvas.context.line-to x, y
 		@canvas.context.stroke!
-		
-	doAction: (data) !->
-		
-		@actionStart data[0][0], data[0][1]
+	
+	actionMoveData: (data) !->
 		for p in data
 			@canvas.context.line-to p[0], p[1]
 		@canvas.context.stroke!
-		@actionEnd!
+		
+	doAction: (data) !->
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for p in data
+				@canvas.context.line-to p[0], p[1]
+			@canvas.context.stroke!
+			@actionEnd!
 
 class WireframeBrush extends Brush
 	(radius, color, canvas) ->
@@ -55,7 +60,7 @@ class WireframeBrush extends Brush
 		@canvas.context.beginPath!
 		
 		# Set the line width from the brush's current radius
-		@canvas.context.line-width = @canvas.action.radius
+		@canvas.context.line-width = @radius
 	
 	actionEnd: !->
 		
@@ -68,19 +73,27 @@ class WireframeBrush extends Brush
 		if numpoints >= 4
 			@canvas.context.lineTo @canvas.action.coord_data[numpoints-4][0], @canvas.action.coord_data[numpoints-4][1]
 		@canvas.context.stroke!
-		
+	
+	actionMoveData: (data) !->
+		for i from 1 til data.length by 1
+				@canvas.context.lineTo data[i][0], data[i][1]
+				nearpoint = data[i-5]
+				if nearpoint
+					@canvas.context.moveTo nearpoint[0], nearpoint[1]
+					@canvas.context.lineTo data[i][0], data[i][1]
+		@canvas.context.stroke!
 
 	doAction: (data) !->
-		
-		@actionStart data[0][0], data[0][1]
-		for i from 1 til data.length by 1
-			@canvas.context.lineTo data[i][0], data[i][1]
-			nearpoint = data[i-5]
-			if nearpoint
-				@canvas.context.moveTo nearpoint[0], nearpoint[1]
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for i from 1 til data.length by 1
 				@canvas.context.lineTo data[i][0], data[i][1]
-		@canvas.context.stroke!
-		@actionEnd!
+				nearpoint = data[i-5]
+				if nearpoint
+					@canvas.context.moveTo nearpoint[0], nearpoint[1]
+					@canvas.context.lineTo data[i][0], data[i][1]
+			@canvas.context.stroke!
+			@actionEnd!
 
 class ColorSamplerBrush extends Brush
 	(radius, color, canvas) ->
@@ -92,11 +105,10 @@ class ColorSamplerBrush extends Brush
 	
 		p = (@canvas.context.getImageData x, y, 1, 1).data
 		
-		r = ("0" + (p[0].toString 16)).slice -2
-		g = ("0" + (p[1].toString 16)).slice -2
-		b = ("0" + (p[2].toString 16)).slice -2
+		# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
+		a = p[3] / 255.0
 		
-		hex = "#" + r + g + b
+		hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
 		@canvas.doColorChange hex
 	
 	actionEnd: !->
@@ -104,6 +116,9 @@ class ColorSamplerBrush extends Brush
 		
 	actionMove: (x, y) !->
 		@actionStart x, y
+	
+	actionMoveData: (data) ->
+		return
 		
 	doAction: (data) !->
 		return

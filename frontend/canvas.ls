@@ -128,6 +128,16 @@ class ColorSamplerBrush extends Brush
 		
 	doAction: (data) !->
 		return
+		
+class EraserBrush extends Brush
+	(radius, color, canvas) ->
+		super ...
+		@type = "eraser"
+		@eraseBuffer = void
+	
+	actionStart: (x, y) !->
+		@eraseBuffer = @canvas.context.createImageData @radius, @radius
+		
 
 
 getBrush = (brushtype, radius, color, canvas) ->
