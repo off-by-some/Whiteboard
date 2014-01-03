@@ -179,7 +179,10 @@ do ->
 
 		# Our ID, it'll be replaced with the real one as soon as we
 		# send a request to the server to get it
-		canvas.id = "self0"
+		canvas.id = ""
+		pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+		for i from 0 to 20 by 1
+			canvas.id += pool.charAt (Math.floor ((Math.random!) * pool.length))
 
 		# Which brush stroke radius to start out at
 		canvas.brushRadius = brushRadius
