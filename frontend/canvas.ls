@@ -17,7 +17,7 @@ class Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = @color
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -60,7 +60,7 @@ class WireframeBrush extends Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = @color
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -114,8 +114,8 @@ class ColorSamplerBrush extends Brush
 		# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 		a = p[3] / 255.0
 		
-		hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-		@canvas.doColorChange hex
+		# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+		@canvas.doColorChange [p[0], p[1], p[2], a]
 	
 	actionEnd: !->
 		return
@@ -355,7 +355,8 @@ do ->
 			
 		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->
-			(document.getElementById 'color-value').value = color
+			(document.getElementById 'color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3]
+			(document.getElementById 'alphaslider').value = "" + color[3]
 			canvas.action.fillColor = color
 			canvas.brush.color = color
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:color}
@@ -375,9 +376,10 @@ do ->
 			if e.ctrlKey
 				canvas.ctrlActivated = false
 				
-		(document.getElementById 'color-value').onkeypress = (e) !->
+		(document.getElementById 'color-value').onblur = (e) !->
+			colorparts = this.value.split ','
 
-			canvas.doColorChange this.value
+			canvas.doColorChange [(parseInt colorparts[0]), (parseInt colorparts[1]), (parseInt colorparts[2]), (parseFloat colorparts[3])]
 			
 		(document.getElementById 'radius-value').onkeypress = (e) !->
 
@@ -440,12 +442,14 @@ do ->
 			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 			a = p[3] / 255.0
 			
-			hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-			canvas.doColorChange hex
+			# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+			canvas.doColorChange canvas.doColorChange [p[0], p[1], p[2], a]
 			return
-
+		
+		(document.getElementById 'alphaslider').onchange = (e) !->
+			canvas.doColorChange [canvas.action.fillColor[0], canvas.action.fillColor[1], canvas.action.fillColor[2], (parseFloat this.value)]
 
 	container = document.getElementById 'canvas'
 	
 
-	init container, window.innerWidth - 17, window.innerHeight - 45, 'rgba(0,0,0,1.0)', 10
+	init container, window.innerWidth - 17, window.innerHeight - 45, [0,0,0,1.0], 10

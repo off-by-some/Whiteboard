@@ -13,7 +13,7 @@
     }
     prototype.actionStart = function(x, y){
       this.canvas.context.moveTo(x, y);
-      this.canvas.context.strokeStyle = this.color;
+      this.canvas.context.strokeStyle = "rgba(" + this.color[0] + "," + this.color[1] + "," + this.color[2] + "," + this.color[3] + ")";
       this.canvas.context.beginPath();
       this.canvas.context.lineWidth = this.radius;
       this.canvas.context.lineJoin = this.canvas.context.lineCap = 'round';
@@ -55,7 +55,7 @@
     }
     prototype.actionStart = function(x, y){
       this.canvas.context.moveTo(x, y);
-      this.canvas.context.strokeStyle = this.color;
+      this.canvas.context.strokeStyle = "rgba(" + this.color[0] + "," + this.color[1] + "," + this.color[2] + "," + this.color[3] + ")";
       this.canvas.context.beginPath();
       this.canvas.context.lineWidth = this.radius;
     };
@@ -110,11 +110,10 @@
       this.type = "sampler";
     }
     prototype.actionStart = function(x, y){
-      var p, a, hex;
+      var p, a;
       p = this.canvas.context.getImageData(x, y, 1, 1).data;
       a = p[3] / 255.0;
-      hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
-      this.canvas.doColorChange(hex);
+      this.canvas.doColorChange([p[0], p[1], p[2], a]);
     };
     prototype.actionEnd = function(){
       return;
@@ -374,7 +373,8 @@
         }));
       };
       canvas.doColorChange = function(color){
-        document.getElementById('color-value').value = color;
+        document.getElementById('color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3];
+        document.getElementById('alphaslider').value = "" + color[3];
         canvas.action.fillColor = color;
         canvas.brush.color = color;
         canvas.connection.send(JSON.stringify({
@@ -399,8 +399,10 @@
           canvas.ctrlActivated = false;
         }
       };
-      document.getElementById('color-value').onkeypress = function(e){
-        canvas.doColorChange(this.value);
+      document.getElementById('color-value').onblur = function(e){
+        var colorparts;
+        colorparts = this.value.split(',');
+        canvas.doColorChange([parseInt(colorparts[0]), parseInt(colorparts[1]), parseInt(colorparts[2]), parseFloat(colorparts[3])]);
       };
       document.getElementById('radius-value').onkeypress = function(e){
         canvas.action.radius = this.value;
@@ -470,19 +472,21 @@
         return [PosX, PosY];
       };
       document.getElementById('colorwheel').onclick = function(e){
-        var element, imgcoords, p, a, hex;
+        var element, imgcoords, p, a;
         element = document.getElementById('colorwheel');
         imgcoords = getCoordinates(e, element);
         console.log('lel ' + imgcoords[0] + ',' + imgcoords[1]);
         p = canvas.colorwheel.context.getImageData(imgcoords[0], imgcoords[1], 1, 1).data;
         a = p[3] / 255.0;
-        hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
-        canvas.doColorChange(hex);
+        canvas.doColorChange(canvas.doColorChange([p[0], p[1], p[2], a]));
         return;
+      };
+      document.getElementById('alphaslider').onchange = function(e){
+        canvas.doColorChange([canvas.action.fillColor[0], canvas.action.fillColor[1], canvas.action.fillColor[2], parseFloat(this.value)]);
       };
     };
     container = document.getElementById('canvas');
-    return init(container, window.innerWidth - 17, window.innerHeight - 45, 'rgba(0,0,0,1.0)', 10);
+    return init(container, window.innerWidth - 17, window.innerHeight - 45, [0, 0, 0, 1.0], 10);
   })();
   function extend$(sub, sup){
     function fun(){} fun.prototype = (sub.superclass = sup).prototype;

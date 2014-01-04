@@ -11,7 +11,7 @@ class Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = @color
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -54,7 +54,7 @@ class WireframeBrush extends Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = @color
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -108,8 +108,8 @@ class ColorSamplerBrush extends Brush
 		# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 		a = p[3] / 255.0
 		
-		hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-		@canvas.doColorChange hex
+		# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+		@canvas.doColorChange [p[0], p[1], p[2], a]
 	
 	actionEnd: !->
 		return
@@ -122,6 +122,16 @@ class ColorSamplerBrush extends Brush
 		
 	doAction: (data) !->
 		return
+		
+class EraserBrush extends Brush
+	(radius, color, canvas) ->
+		super ...
+		@type = "eraser"
+		@eraseBuffer = void
+	
+	actionStart: (x, y) !->
+		@eraseBuffer = @canvas.context.createImageData @radius, @radius
+		
 
 
 getBrush = (brushtype, radius, color, canvas) ->
