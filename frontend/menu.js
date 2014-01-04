@@ -38,14 +38,14 @@ $( document ).ready(function() {
         //e.preventDefault();
         if (a==0)
           {
-              $("#menu").animate({"left":"152px"}, "slow").show();
+              $("#menu").animate({"left":"162px"}, "slow").show();
               $("#a-show").fadeToggle(500);
               $("#a-hide").fadeToggle(500);
               a=1;
           }
         else
            {
-             $("#menu").animate({"left":"-150px"}, "slow");
+             $("#menu").animate({"left":"-160px"}, "slow");
               $("#a-show").fadeToggle(500);
               $("#a-hide").fadeToggle(500);
                a=0;
