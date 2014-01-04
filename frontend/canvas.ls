@@ -355,6 +355,8 @@ do ->
 			
 		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->
+			console.log "Hi, I\'m Google Chrome and I\'m a cunt!"
+			console.log color
 			(document.getElementById 'color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3]
 			(document.getElementById 'alphaslider').value = "" + color[3]
 			canvas.action.fillColor = color
@@ -438,12 +440,13 @@ do ->
 			imgcoords = getCoordinates e, element
 			console.log 'lel ' + imgcoords[0] + ',' + imgcoords[1]
 			p = (canvas.colorwheel.context.getImageData imgcoords[0], imgcoords[1], 1, 1).data
+			console.log p
 		
 			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 			a = p[3] / 255.0
 			
 			# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-			canvas.doColorChange canvas.doColorChange [p[0], p[1], p[2], a]
+			canvas.doColorChange [p[0], p[1], p[2], a]
 			return
 		
 		(document.getElementById 'alphaslider').onchange = (e) !->

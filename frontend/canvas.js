@@ -373,6 +373,8 @@
         }));
       };
       canvas.doColorChange = function(color){
+        console.log("Hi, I'm Google Chrome and I'm a cunt!");
+        console.log(color);
         document.getElementById('color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3];
         document.getElementById('alphaslider').value = "" + color[3];
         canvas.action.fillColor = color;
@@ -477,8 +479,9 @@
         imgcoords = getCoordinates(e, element);
         console.log('lel ' + imgcoords[0] + ',' + imgcoords[1]);
         p = canvas.colorwheel.context.getImageData(imgcoords[0], imgcoords[1], 1, 1).data;
+        console.log(p);
         a = p[3] / 255.0;
-        canvas.doColorChange(canvas.doColorChange([p[0], p[1], p[2], a]));
+        canvas.doColorChange([p[0], p[1], p[2], a]);
         return;
       };
       document.getElementById('alphaslider').onchange = function(e){
