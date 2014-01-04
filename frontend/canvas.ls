@@ -176,6 +176,12 @@ do ->
 		canvas = createCanvas container, width, height
 		context = canvas.context
 		points = {}
+		
+		# The colorwheel has to be stored in an in-memory canvas for me to get data from it
+		canvas.colorwheel = {}
+		canvas.colorwheel.canvas = document.createElement 'canvas'
+		canvas.colorwheel.context = canvas.colorwheel.canvas.getContext '2d'
+		canvas.colorwheel.context.drawImage (document.getElementById 'colorwheel'), 0, 0
 
 		# Our ID, it'll be replaced with the real one as soon as we
 		# send a request to the server to get it
@@ -400,6 +406,43 @@ do ->
 			canvas.brush = new WireframeBrush canvas.action.radius, canvas.action.fillColor, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
+			
+			
+		getCoordinates = (e, element) !->
+			PosX = 0
+			PosY = 0
+			imgPos = [0, 0]
+			if(element.offsetParent != undefined)
+				while element
+					imgPos[0] += element.offsetLeft
+					imgPos[1] += element.offsetTop
+					element = element.offsetParent
+			else
+				imgPos = [element.x, element.y]
+			unless e
+				e = window.event
+			if e.pageX || e.pageY
+				PosX = e.pageX
+				PosY = e.pageY
+			else if e.clientX || e.clientY
+				PosX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft
+				PosY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop
+			PosX = PosX - imgPos[0]
+			PosY = PosY - imgPos[1]
+			return [PosX, PosY]
+
+		(document.getElementById 'colorwheel').onclick = (e) !->
+			element = document.getElementById 'colorwheel'
+			imgcoords = getCoordinates e, element
+			console.log 'lel ' + imgcoords[0] + ',' + imgcoords[1]
+			p = (canvas.colorwheel.context.getImageData imgcoords[0], imgcoords[1], 1, 1).data
+		
+			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
+			a = p[3] / 255.0
+			
+			hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+			canvas.doColorChange hex
+			return
 
 
 	container = document.getElementById 'canvas'

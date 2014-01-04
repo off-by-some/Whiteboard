@@ -186,10 +186,14 @@
       return canvas;
     };
     init = function(container, width, height, fillColor, brushRadius){
-      var canvas, context, points, pool, i$, i;
+      var canvas, context, points, pool, i$, i, getCoordinates;
       canvas = createCanvas(container, width, height);
       context = canvas.context;
       points = {};
+      canvas.colorwheel = {};
+      canvas.colorwheel.canvas = document.createElement('canvas');
+      canvas.colorwheel.context = canvas.colorwheel.canvas.getContext('2d');
+      canvas.colorwheel.context.drawImage(document.getElementById('colorwheel'), 0, 0);
       canvas.id = "";
       pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       for (i$ = 0; i$ <= 20; ++i$) {
@@ -436,6 +440,45 @@
           action: 'brush-change',
           data: 'wireframe'
         }));
+      };
+      getCoordinates = function(e, element){
+        var PosX, PosY, imgPos;
+        PosX = 0;
+        PosY = 0;
+        imgPos = [0, 0];
+        if (element.offsetParent !== undefined) {
+          while (element) {
+            imgPos[0] += element.offsetLeft;
+            imgPos[1] += element.offsetTop;
+            element = element.offsetParent;
+          }
+        } else {
+          imgPos = [element.x, element.y];
+        }
+        if (!e) {
+          e = window.event;
+        }
+        if (e.pageX || e.pageY) {
+          PosX = e.pageX;
+          PosY = e.pageY;
+        } else if (e.clientX || e.clientY) {
+          PosX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+          PosY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        PosX = PosX - imgPos[0];
+        PosY = PosY - imgPos[1];
+        return [PosX, PosY];
+      };
+      document.getElementById('colorwheel').onclick = function(e){
+        var element, imgcoords, p, a, hex;
+        element = document.getElementById('colorwheel');
+        imgcoords = getCoordinates(e, element);
+        console.log('lel ' + imgcoords[0] + ',' + imgcoords[1]);
+        p = canvas.colorwheel.context.getImageData(imgcoords[0], imgcoords[1], 1, 1).data;
+        a = p[3] / 255.0;
+        hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
+        canvas.doColorChange(hex);
+        return;
       };
     };
     container = document.getElementById('canvas');
