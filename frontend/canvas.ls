@@ -219,13 +219,13 @@ do ->
 
 		canvas.connection.onerror = (error) !->
 
-			console.log 'websocket dun goofed: ' + error
+			# console.log 'websocket dun goofed: ' + error
 			
 		canvas.connection.onmessage = (e) !->
 
 			# message format:
 			# {id:"aeuaouaeid_here", action:"action_name", data:{whatever_you_want_in_here_i_guess}}
-			# console.log(e.data)
+			console.log(e.data)
 			message = JSON.parse(e.data)
 			if message.id
 				switch message.action
@@ -256,7 +256,7 @@ do ->
 					cur_user = canvas.users[message.id]
 					cur_user.brush = getBrush message.data, cur_user.action.radius, cur_user.action.fillColor, canvas
 			else
-				console.log "server says: " + e.data
+				# console.log "server says: " + e.data
 
 		context.fillCircle = (x,y, radius, fillColor) !->
 
@@ -355,8 +355,8 @@ do ->
 			
 		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->
-			console.log "Hi, I\'m Google Chrome and I\'m a cunt!"
-			console.log color
+			# console.log "Hi, I\'m Google Chrome and I\'m a cunt!"
+			# console.log color
 			(document.getElementById 'color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3]
 			(document.getElementById 'alphaslider').value = "" + color[3]
 			canvas.action.fillColor = color
@@ -438,9 +438,9 @@ do ->
 		(document.getElementById 'colorwheel').onclick = (e) !->
 			element = document.getElementById 'colorwheel'
 			imgcoords = getCoordinates e, element
-			console.log 'lel ' + imgcoords[0] + ',' + imgcoords[1]
+			# console.log 'lel ' + imgcoords[0] + ',' + imgcoords[1]
 			p = (canvas.colorwheel.context.getImageData imgcoords[0], imgcoords[1], 1, 1).data
-			console.log p
+			# console.log p
 		
 			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 			a = p[3] / 255.0
