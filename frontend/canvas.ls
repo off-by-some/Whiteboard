@@ -128,6 +128,37 @@ class ColorSamplerBrush extends Brush
 		
 	doAction: (data) !->
 		return
+
+class Lenny extends Brush
+	(radius, color, canvas) ->
+		
+		super ...
+		@type = "lenny"
+		
+	actionStart: (x, y) !->
+		
+		@canvas.context.moveTo x, y
+		# Set the line's color from the brush's color
+		@canvas.context.fillStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.font = "bold " + @radius + "px arial"
+		@canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y)
+	
+	actionEnd: !->
+		return
+	
+	actionMove: (x, y) !->
+		
+		@canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y);
+	
+	actionMoveData: (data) !->
+		for p in data
+			@canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+		
+	doAction: (data) !->
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for p in data
+				@canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
 		
 class EraserBrush extends Brush
 	(radius, color, canvas) ->
@@ -144,7 +175,7 @@ getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'default' => new Brush radius, color, canvas
 	| brushtype == 'wireframe' => new WireframeBrush radius, color, canvas
 	| brushtype == 'sampler' => new ColorSamplerBrush radius, color, canvas
-
+	| brushtype == 'lenny' => new Lenny radius, color, canvas
 
 
 class Action
@@ -410,6 +441,12 @@ do ->
 			canvas.brush = new WireframeBrush canvas.action.radius, canvas.action.fillColor, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
+		
+		(document.getElementById 'lenny-brush').onclick = (e) !->
+
+			canvas.brush = new Lenny canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
 			
 			
 		getCoordinates = (e, element) !->
