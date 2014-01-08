@@ -4,6 +4,60 @@
 # one file and using it in another is so unimaginably difficult
 # that it merits polluting a file like this.
 # I'd really like to test this stuff tonight, so fuck it.
+
+rgb2hsl = (rgbcolor) !->
+	r = rgbcolor[0] / 255.0
+	g = rgbcolor[1] / 255.0
+	b = rgbcolor[2] / 255.0
+	
+	var h, s, l
+	
+	min = Math.min r, g, b
+	max = Math.max r, g, b
+	delta_max = max - min
+	l = (min + max) / 2.0
+	if delta_max == 0
+		h = s = 0
+	else
+		s = if (l < 0.5) then delta_max / (max + min) else delta_max / (2.0 - max - min)
+		delta_r = (((max - r) / 6.0) + (delta_max / 2.0)) / delta_max
+		delta_g = (((max - g) / 6.0) + (delta_max / 2.0)) / delta_max
+		delta_b = (((max - b) / 6.0) + (delta_max / 2.0)) / delta_max
+		#console.log "r, g, b, max: " + r + "," + g + "," + b + "," + max
+		if r == max
+			h = delta_b - delta_g
+		else if g == max
+			h = (1.0 / 3.0) + delta_r - delta_b
+		else if b == max
+			h = (2.0 / 3.0) + delta_g - delta_r
+		if h < 0.0 then h += 1.0
+		if h > 1.0 then h -= 1.0
+	return [h, s, l]
+
+hsl2rgb = (hslcolor) !->
+	var r, g, b
+	
+	h = hslcolor[0]
+	s = hslcolor[1]
+	l = hslcolor[2]
+	
+	if s == 0
+		r = g = b = Math.round (l * 255.0)
+	else
+		temp0 = if (l < 0.5) then (l * (1.0 + s)) else ((l + s) - (s * l))
+		temp1 = 2 * l - temp0
+		huefunc = (v1, v2, vH) !->
+			if vH < 0.0 then vH += 1.0
+			if vH > 1.0 then vH -= 1.0
+			if ((6.0 * vH) < 1.0) then return (v1 + (v2 - v1) * 6.0 * vH)
+			if ((2.0 * vH) < 1.0) then return v2
+			if ((3.0 * vH) < 2.0) then return (v1 + (v2 - v1) * ((2.0 / 3.0) - vH) * 6.0)
+			return v1
+		r = Math.round (255.0 * (huefunc temp0, temp1, h + (1.0 / 3.0)))
+		g = Math.round (255.0 * (huefunc temp0, temp1, h))
+		b = Math.round (255.0 * (huefunc temp0, temp1, h - (1.0 / 3.0)))
+	return [r, g, b]
+
 class Brush
 	(radius, color, canvas) ->
 	
@@ -386,10 +440,9 @@ do ->
 			
 		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->
-			# console.log "Hi, I\'m Google Chrome and I\'m a cunt!"
-			# console.log color
 			(document.getElementById 'color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3]
 			(document.getElementById 'alphaslider').value = "" + color[3]
+			(document.getElementById 'brightnessslider').value = "" + (rgb2hsl color)[2]
 			canvas.action.fillColor = color
 			canvas.brush.color = color
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:color}
@@ -475,9 +528,7 @@ do ->
 		(document.getElementById 'colorwheel').onclick = (e) !->
 			element = document.getElementById 'colorwheel'
 			imgcoords = getCoordinates e, element
-			# console.log 'lel ' + imgcoords[0] + ',' + imgcoords[1]
 			p = (canvas.colorwheel.context.getImageData imgcoords[0], imgcoords[1], 1, 1).data
-			# console.log p
 		
 			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 			a = p[3] / 255.0
@@ -488,6 +539,14 @@ do ->
 		
 		(document.getElementById 'alphaslider').onchange = (e) !->
 			canvas.doColorChange [canvas.action.fillColor[0], canvas.action.fillColor[1], canvas.action.fillColor[2], (parseFloat this.value)]
+		
+		(document.getElementById 'brightnessslider').onchange = (e) !->
+			#console.log this.value
+			hslcolor = rgb2hsl canvas.action.fillColor
+			#console.log "h,s,l =" + hslcolor[0] + "," + hslcolor[1] + "," + hslcolor[2]
+			hslcolor[2] = parseFloat this.value
+			rgbcolor = hsl2rgb hslcolor
+			canvas.doColorChange [rgbcolor[0], rgbcolor[1], rgbcolor[2], canvas.action.fillColor[3]]
 
 	container = document.getElementById 'canvas'
 	
