@@ -1,3 +1,56 @@
+rgb2hsl = (rgbcolor) !->
+	r = rgbcolor[0] / 255.0
+	g = rgbcolor[1] / 255.0
+	b = rgbcolor[2] / 255.0
+	
+	var h, s, l
+	
+	min = Math.min r, g, b
+	max = Math.max r, g, b
+	delta_max = max - min
+	l = (min + max) / 2.0
+	if delta_max == 0
+		h = s = 0
+	else
+		s = if (l < 0.5) then delta_max / (max + min) else delta_max / (2.0 - max - min)
+		delta_r = (((max - r) / 6.0) + (delta_max / 2.0)) / delta_max
+		delta_g = (((max - g) / 6.0) + (delta_max / 2.0)) / delta_max
+		delta_b = (((max - b) / 6.0) + (delta_max / 2.0)) / delta_max
+		console.log "r, g, b, max: " + r + "," + g + "," + b + "," + max
+		if r == max
+			h = delta_b - delta_g
+		else if g == max
+			h = (1.0 / 3.0) + delta_r - delta_b
+		else if b == max
+			h = (2.0 / 3.0) + delta_g - delta_r
+		if h < 0.0 then h += 1.0
+		if h > 1.0 then h -= 1.0
+	return [h, s, l]
+
+hsl2rgb = (hslcolor) !->
+	var r, g, b
+	
+	h = hslcolor[0]
+	s = hslcolor[1]
+	l = hslcolor[2]
+	
+	if s == 0
+		r = g = b = Math.round (l * 255.0)
+	else
+		temp0 = if (l < 0.5) then (l * (1.0 + s)) else ((l + s) - (s * l))
+		temp1 = 2 * l - temp0
+		huefunc = (v1, v2, vH) !->
+			if vH < 0.0 then vH += 1.0
+			if vH > 1.0 then vH -= 1.0
+			if ((6.0 * vH) < 1.0) then return (v1 + (v2 - v1) * 6.0 * vH)
+			if ((2.0 * vH) < 1.0) then return v2
+			if ((3.0 * vH) < 2.0) then return (v1 + (v2 - v1) * ((2.0 / 3.0) - vH) * 6.0)
+			return v1
+		r = Math.round (255.0 * (huefunc temp0, temp1, h + (1.0 / 3.0)))
+		g = Math.round (255.0 * (huefunc temp0, temp1, h))
+		b = Math.round (255.0 * (huefunc temp0, temp1, h - (1.0 / 3.0)))
+	return [r, g, b]
+
 class Brush
 	(radius, color, canvas) ->
 	
@@ -153,7 +206,7 @@ class Lenny extends Brush
 			@actionStart data[0][0], data[0][1]
 			for p in data
 				@canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
-
+		
 class EraserBrush extends Brush
 	(radius, color, canvas) ->
 		super ...
