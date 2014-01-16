@@ -319,6 +319,15 @@ canvas_script = function(){
         data: 'copypaste'
       }));
     };
+    document.getElementById('sketch-brush').onclick = function(e){
+      canvas.brush = new SketchBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+      canvas.node.style.cursor = 'url("content/cursor_pencil.png"), url("content/cursor_pencil.cur"), pointer';
+      canvas.connection.send(JSON.stringify({
+        id: canvas.id,
+        action: 'brush-change',
+        data: 'sketch'
+      }));
+    };
     getCoordinates = function(e, element){
       var PosX, PosY, imgPos;
       PosX = 0;

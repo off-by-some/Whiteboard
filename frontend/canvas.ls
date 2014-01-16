@@ -47,6 +47,10 @@ canvas_script = ->
 
 		# History of all commands
 		canvas.history = []
+		
+		# History of frames to minimize redraw lag
+		canvas.frameHistory = []
+		canvas.frameHistory.push (canvas.context.getImageData 0, 0, width, height)
 
 		# The current buffer of commands
 		# canvas.commands = []
@@ -193,6 +197,9 @@ canvas_script = ->
 				canvas.action.fillColor, [x for x in canvas.action.data])
 
 			canvas.history.push tempAction
+			
+			if (canvas.history.length % 5) == 0
+				canvas.frameHistory.push canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
 
 			canvas.action.data = []
 			
@@ -277,6 +284,12 @@ canvas_script = ->
 			canvas.brush = new CopyPasteBrush canvas.action.radius, canvas.action.fillColor, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
+		
+		(document.getElementById 'sketch-brush').onclick = (e) !->
+
+			canvas.brush = new SketchBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
 			
 		getCoordinates = (e, element) !->
 			PosX = 0

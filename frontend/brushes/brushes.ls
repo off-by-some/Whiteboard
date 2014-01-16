@@ -281,6 +281,96 @@ class CopyPasteBrush extends Brush
 				corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
 				@canvas.context.putImageData @imgData, corner_x, corner_y
 
+class SketchBrush extends Brush
+	(radius, color, canvas) ->
+	
+		super ...
+		@type = "sketch"
+
+	actionStart: (x, y) !->
+		
+		@canvas.context.moveTo x, y
+		# Set the line's color from the brush's color
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		
+		# Start a new path, because we're on a new action
+		@canvas.context.beginPath!
+		
+		# Set the line width from the brush's current radius
+		@canvas.context.line-width = @radius
+		
+		# get rid of those nasty turns
+		@canvas.context.line-cap = 'round'
+	
+	actionEnd: !->
+		@canvas.context.closePath!
+	
+	actionMove: (x, y) !->
+		numpoints = @canvas.action.data.length
+		if numpoints > 1
+			lastpoint = @canvas.action.data[numpoints - 1]
+			@canvas.context.moveTo lastpoint[0], lastpoint[1]
+			@canvas.context.line-to x, y
+			@canvas.context.stroke!
+			@canvas.context.closePath!
+			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+			for p in @canvas.action.data
+				dx = p[0] - x;
+				dy = p[1] - y;
+				d = dx * dx + dy * dy;
+
+				if d < 1000 && (!((p[0] == lastpoint[0]) && (p[1] == lastpoint[1])))
+					@canvas.context.beginPath!
+					@canvas.context.moveTo(x + (dx * 0.2), y + (dy * 0.2))
+					@canvas.context.lineTo(p[0] - (dx * 0.2), p[1] - (dy * 0.2))
+				@canvas.context.stroke!
+				@canvas.context.closePath!
+			@canvas.context.beginPath!
+			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.action.data.push [x, y]
+	
+	actionMoveData: (data) !->
+		for p in data
+			@canvas.context.line-to p[0], p[1]
+		@canvas.context.stroke!
+		@canvas.context.closePath!
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+		for i from 1 til data.length by 1
+			for p in data
+				dx = p[0] - data[i][0];
+				dy = p[1] - data[i][1];
+				d = dx * dx + dy * dy;
+
+				if d < 1000 && (!((p[0] == data[i-1][0]) && (p[1] == data[i-1][1])))
+					@canvas.context.beginPath!
+					@canvas.context.moveTo(data[i][0] + (dx * 0.2), data[i][1] + (dy * 0.2))
+					@canvas.context.lineTo(p[0] - (dx * 0.2), p[1] - (dy * 0.2))
+			@canvas.context.stroke!
+			@canvas.context.closePath!
+		@canvas.context.beginPath!
+		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+
+	doAction: (data) !->
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for p in data
+				@canvas.context.line-to p[0], p[1]
+			@canvas.context.stroke!
+			@canvas.context.closePath!
+			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+			for i from 1 til data.length by 1
+				for p in data
+					dx = p[0] - data[i][0];
+					dy = p[1] - data[i][1];
+					d = dx * dx + dy * dy;
+
+					if (d < 1000) && (!((p[0] == data[i-1][0]) && (p[1] == data[i-1][1])))
+						@canvas.context.beginPath!
+						@canvas.context.moveTo(data[i][0] + (dx * 0.2), data[i][1] + (dy * 0.2))
+						@canvas.context.lineTo(p[0] - (dx * 0.2), p[1] - (dy * 0.2))
+						@canvas.context.stroke!
+						@canvas.context.closePath!
+
 getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'default' => new Brush radius, color, canvas
 	| brushtype == 'wireframe' => new WireframeBrush radius, color, canvas
@@ -288,25 +378,4 @@ getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'lenny' => new Lenny radius, color, canvas
 	| brushtype == 'eraser' => new EraserBrush radius, color, canvas
 	| brushtype == 'copypaste' => new CopyPasteBrush radius, color, canvas
-
-
-sketch-brush = (context, event, points) ->
-
-	points.push [x:event.clientX, y: event.clientY]
-	context.moveTo points[points.length - 2].x, points[points.length - 2].y
-	context.lineTo points[points.length - 1].x, points[points.length - 1].y
-	context.stroke!
-
-	lastPoint = points[points.length-1]
-
-	for i in points
-		dx = points[i].x - lastPoint.x;
-		dy = points[i].y - lastPoint.y;
-		d = dx * dx + dy * dy;
-
-		if d < 1000
-			context.beginPath()
-			context.strokeStyle = 'rgba(0,0,0,0.3)'
-			context.moveTo(lastPoint.x + (dx * 0.2), lastPoint.y + (dy * 0.2))
-			context.ctx.lineTo(points[i].x - (dx * 0.2), points[i].y - (dy * 0.2))
-			context.stroke!
+	| brushtype == 'sketch' => new SketchBrush radius, color, canvas
