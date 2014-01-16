@@ -8,7 +8,7 @@ Action = (function(){
     this.brushtype = brushtype;
     this.radius = radius;
     this.fillColor = color;
-    this.coord_data = coords;
+    this.data = coords;
   }
   return Action;
 }());
@@ -81,14 +81,14 @@ canvas_script = function(){
           cur_user.action = new Action(message.id, cur_user.brush.type, message.data.radius, message.data.fillColor, []);
           break;
         case 'action-data':
-          canvas.users[message.id].action.coord_data.push(message.data);
+          canvas.users[message.id].action.data.push(message.data);
           canvas.userdraw(message.id, message.data[0], message.data[1]);
           break;
         case 'action-end':
           cur_user = canvas.users[message.id];
           tempAction = new Action(message.id, cur_user.brush.type, cur_user.action.radius, cur_user.action.fillColor, (function(){
             var i$, ref$, len$, results$ = [];
-            for (i$ = 0, len$ = (ref$ = cur_user.action.coord_data).length; i$ < len$; ++i$) {
+            for (i$ = 0, len$ = (ref$ = cur_user.action.data).length; i$ < len$; ++i$) {
               x = ref$[i$];
               results$.push(x);
             }
@@ -127,12 +127,12 @@ canvas_script = function(){
         if (canvas.isDrawing) {
           canvas.brush.actionEnd();
         }
-        [(ref$ = temp_user.action.coord_data.push)[x], ref$[y]];
-        temp_user.brush.doAction(temp_user.action.coord_data);
+        [(ref$ = temp_user.action.data.push)[x], ref$[y]];
+        temp_user.brush.doAction(temp_user.action.data);
         if (canvas.isDrawing) {
-          tempcoords = canvas.action.coord_data[0];
+          tempcoords = canvas.action.data[0];
           canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
-          canvas.brush.actionMoveData(canvas.action.coord_data);
+          canvas.brush.actionMoveData(canvas.action.data);
         }
       }
     };
@@ -144,7 +144,6 @@ canvas_script = function(){
       x = e.clientX;
       y = e.clientY;
       canvas.brush.actionMove(x, y);
-      canvas.action.coord_data.push([x, y]);
       canvas.connection.send(JSON.stringify({
         id: canvas.id,
         action: 'action-data',
@@ -159,7 +158,7 @@ canvas_script = function(){
         x = ref$[i$];
         canvas.brush = getBrush(x.brushtype, x.radius, x.fillColor, canvas);
         if (!canvas.brush.isTool) {
-          canvas.brush.doAction(x.coord_data);
+          canvas.brush.doAction(x.data);
         }
       }
       canvas.brush = tempBrush;
@@ -183,9 +182,9 @@ canvas_script = function(){
         }
       }
       if (canvas.isDrawing) {
-        tempcoords = canvas.action.coord_data[0];
+        tempcoords = canvas.action.data[0];
         canvas.brush.actionStart(tempcoords[0], tempcoords[1]);
-        canvas.brush.actionMoveData(canvas.action.coord_data);
+        canvas.brush.actionMoveData(canvas.action.data);
       }
       canvas.redraw();
     };
@@ -206,14 +205,14 @@ canvas_script = function(){
       canvas.isDrawing = false;
       tempAction = new Action('self', canvas.brush.type, canvas.action.radius, canvas.action.fillColor, (function(){
         var i$, ref$, len$, results$ = [];
-        for (i$ = 0, len$ = (ref$ = canvas.action.coord_data).length; i$ < len$; ++i$) {
+        for (i$ = 0, len$ = (ref$ = canvas.action.data).length; i$ < len$; ++i$) {
           x = ref$[i$];
           results$.push(x);
         }
         return results$;
       }()));
       canvas.history.push(tempAction);
-      canvas.action.coord_data = [];
+      canvas.action.data = [];
       canvas.brush.actionEnd();
       canvas.redraw();
       canvas.connection.send(JSON.stringify({
@@ -300,6 +299,15 @@ canvas_script = function(){
         id: canvas.id,
         action: 'brush-change',
         data: 'lenny'
+      }));
+    };
+    document.getElementById('eraser-brush').onclick = function(e){
+      canvas.brush = new EraserBrush(canvas.action.radius, canvas.action.fillColor, canvas);
+      canvas.node.style.cursor = 'url("content/cursor_pencil.png"), url("content/cursor_pencil.cur"), pointer';
+      canvas.connection.send(JSON.stringify({
+        id: canvas.id,
+        action: 'brush-change',
+        data: 'eraser'
       }));
     };
     getCoordinates = function(e, element){

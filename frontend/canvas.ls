@@ -4,7 +4,7 @@ class Action
 		@brushtype = brushtype
 		@radius = radius
 		@fillColor = color
-		@coord_data = coords
+		@data = coords
 
 class User
 	(id) ->
@@ -89,12 +89,12 @@ canvas_script = ->
 					cur_user = canvas.users[message.id]
 					cur_user.action = new Action message.id, cur_user.brush.type, message.data.radius, message.data.fillColor, []
 				case 'action-data'
-					canvas.users[message.id].action.coord_data.push message.data
+					canvas.users[message.id].action.data.push message.data
 					canvas.userdraw message.id, message.data[0], message.data[1]
 				case 'action-end'
 					cur_user = canvas.users[message.id]
 					tempAction = (new Action message.id, cur_user.brush.type, cur_user.action.radius,
-					cur_user.action.fillColor, [x for x in cur_user.action.coord_data])
+					cur_user.action.fillColor, [x for x in cur_user.action.data])
 					canvas.history.push tempAction
 				case 'undo'
 					canvas.undo message.id
@@ -123,12 +123,12 @@ canvas_script = ->
 			unless temp_user.brush.isTool
 				if canvas.isDrawing
 					canvas.brush.actionEnd!
-				temp_user.action.coord_data.push[x,y]
-				temp_user.brush.doAction temp_user.action.coord_data
+				temp_user.action.data.push[x,y]
+				temp_user.brush.doAction temp_user.action.data
 				if canvas.isDrawing
-					tempcoords = canvas.action.coord_data[0]
+					tempcoords = canvas.action.data[0]
 					canvas.brush.actionStart tempcoords[0], tempcoords[1]
-					canvas.brush.actionMoveData canvas.action.coord_data
+					canvas.brush.actionMoveData canvas.action.data
 
 		canvas.node.onmousemove = (e) !->
 
@@ -138,8 +138,6 @@ canvas_script = ->
 			y = e.clientY #- this.offsetTop
 			
 			canvas.brush.actionMove x, y
-
-			canvas.action.coord_data.push [x,y]
 
 			# console.log canvas.commands
 
@@ -157,7 +155,7 @@ canvas_script = ->
 			for x in canvas.history
 				canvas.brush = getBrush x.brushtype, x.radius, x.fillColor, canvas
 				unless canvas.brush.isTool
-					canvas.brush.doAction x.coord_data
+					canvas.brush.doAction x.data
 			canvas.brush = tempBrush
 		
 		canvas.undo = (user_id) !->
@@ -171,9 +169,9 @@ canvas_script = ->
 					canvas.history.splice i, 1
 					break
 			if canvas.isDrawing
-				tempcoords = canvas.action.coord_data[0]
+				tempcoords = canvas.action.data[0]
 				canvas.brush.actionStart tempcoords[0], tempcoords[1]
-				canvas.brush.actionMoveData canvas.action.coord_data
+				canvas.brush.actionMoveData canvas.action.data
 				
 			canvas.redraw!
 
@@ -192,11 +190,11 @@ canvas_script = ->
 			canvas.isDrawing = off
 
 			tempAction = (new Action 'self', canvas.brush.type, canvas.action.radius,
-				canvas.action.fillColor, [x for x in canvas.action.coord_data])
+				canvas.action.fillColor, [x for x in canvas.action.data])
 
 			canvas.history.push tempAction
 
-			canvas.action.coord_data = []
+			canvas.action.data = []
 			
 			canvas.brush.actionEnd!
 			
@@ -267,7 +265,12 @@ canvas_script = ->
 			canvas.brush = new Lenny canvas.action.radius, canvas.action.fillColor, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
-			
+		
+		(document.getElementById 'eraser-brush').onclick = (e) !->
+
+			canvas.brush = new EraserBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
 			
 		getCoordinates = (e, element) !->
 			PosX = 0
