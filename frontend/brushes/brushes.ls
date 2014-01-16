@@ -191,6 +191,7 @@ class Lenny extends Brush
 		@canvas.context.fillStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		@canvas.context.font = "bold " + @radius + "px arial"
 		@canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
+		# @canvas.action.data.push [x, y] <---- This will cause problems when actionStart is called in doAction
 	
 	actionEnd: !->
 		return
@@ -219,6 +220,7 @@ class EraserBrush extends Brush
 		corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
 		corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
 		@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+		@canvas.action.data.push [x, y]
 	
 	actionEnd: !->
 		return
@@ -237,11 +239,47 @@ class EraserBrush extends Brush
 		
 	doAction: (data) !->
 		unless data.length == 0
-			@actionStart data[0][0], data[0][1]
 			for p in data
 				corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
 				corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
 				@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+
+class CopyPasteBrush extends Brush
+	(radius, color, canvas) ->
+		super ...
+		@type = "copypaste"
+		@imgData = void
+	
+	actionStart: (x, y) !->
+		corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
+		corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
+		@imgData = @canvas.context.getImageData corner_x, corner_y, @radius * 2, @radius * 2
+		@canvas.action.data.push [x, y]
+	
+	actionEnd: !->
+		return
+	
+	actionMove: (x, y) !->
+		corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
+		corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
+		@canvas.context.putImageData @imgData, corner_x, corner_y
+		@canvas.action.data.push [x, y]
+	
+	actionMoveData: (data) !->
+		for p in data
+			corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
+			corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+			@canvas.context.putImageData @imgData, corner_x, corner_y
+		
+	doAction: (data) !->
+		unless data.length == 0
+			corner_x = if (data[0][0] - @radius) >= 0 then (data[0][0] - @radius) else 0
+			corner_y = if (data[0][1] - @radius) >= 0 then (data[0][1] - @radius) else 0
+			@imgData = @canvas.context.getImageData corner_x, corner_y, @radius * 2, @radius * 2
+			for p in data
+				corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
+				corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+				@canvas.context.putImageData @imgData, corner_x, corner_y
 
 getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'default' => new Brush radius, color, canvas
@@ -249,6 +287,7 @@ getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'sampler' => new ColorSamplerBrush radius, color, canvas
 	| brushtype == 'lenny' => new Lenny radius, color, canvas
 	| brushtype == 'eraser' => new EraserBrush radius, color, canvas
+	| brushtype == 'copypaste' => new CopyPasteBrush radius, color, canvas
 
 
 sketch-brush = (context, event, points) ->

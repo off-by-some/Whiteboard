@@ -271,6 +271,12 @@ canvas_script = ->
 			canvas.brush = new EraserBrush canvas.action.radius, canvas.action.fillColor, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
+		
+		(document.getElementById 'copypaste-brush').onclick = (e) !->
+
+			canvas.brush = new CopyPasteBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
 			
 		getCoordinates = (e, element) !->
 			PosX = 0
