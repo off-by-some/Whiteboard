@@ -83,6 +83,7 @@ class Brush
 		
 		@canvas.context.line-to x, y
 		@canvas.context.stroke!
+		@canvas.action.data.push [x, y]
 	
 	actionMoveData: (data) !->
 		for p in data
@@ -122,10 +123,11 @@ class WireframeBrush extends Brush
 	actionMove: (x, y) !->
 	
 		@canvas.context.line-to x, y
-		numpoints = @canvas.action.coord_data.length
+		numpoints = @canvas.action.data.length
 		if numpoints >= 4
-			@canvas.context.lineTo @canvas.action.coord_data[numpoints-4][0], @canvas.action.coord_data[numpoints-4][1]
+			@canvas.context.lineTo @canvas.action.data[numpoints-4][0], @canvas.action.data[numpoints-4][1]
 		@canvas.context.stroke!
+		@canvas.action.data.push [x, y]
 	
 	actionMoveData: (data) !->
 		for i from 1 til data.length by 1
@@ -188,61 +190,67 @@ class Lenny extends Brush
 		# Set the line's color from the brush's color
 		@canvas.context.fillStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
 		@canvas.context.font = "bold " + @radius + "px arial"
-		@canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y)
+		@canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
 	
 	actionEnd: !->
 		return
 	
 	actionMove: (x, y) !->
 		
-		@canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y);
+		@canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
+		@canvas.action.data.push [x, y]
 	
 	actionMoveData: (data) !->
 		for p in data
-			@canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+			@canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
 		
 	doAction: (data) !->
 		unless data.length == 0
 			@actionStart data[0][0], data[0][1]
 			for p in data
-				@canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+				@canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
 		
 class EraserBrush extends Brush
 	(radius, color, canvas) ->
 		super ...
 		@type = "eraser"
-		@eraseBuffer = void
 	
 	actionStart: (x, y) !->
-		@eraseBuffer = @canvas.context.createImageData @radius, @radius
+		corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
+		corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
+		@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+	
+	actionEnd: !->
+		return
+	
+	actionMove: (x, y) !->
+		corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
+		corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
+		@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+		@canvas.action.data.push [x, y]
+	
+	actionMoveData: (data) !->
+		for p in data
+			corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
+			corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+			@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
 		
-
+	doAction: (data) !->
+		unless data.length == 0
+			@actionStart data[0][0], data[0][1]
+			for p in data
+				corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
+				corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+				@canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
 
 getBrush = (brushtype, radius, color, canvas) ->
 	| brushtype == 'default' => new Brush radius, color, canvas
 	| brushtype == 'wireframe' => new WireframeBrush radius, color, canvas
 	| brushtype == 'sampler' => new ColorSamplerBrush radius, color, canvas
 	| brushtype == 'lenny' => new Lenny radius, color, canvas
+	| brushtype == 'eraser' => new EraserBrush radius, color, canvas
 
 
-"""wireframe-brush = (context, event, points) ->
-
-	points.push [x:event.clientX, y: event.clientY]
-	context.begin-path!
-
-	context.move-to points[0].x, points[0].y
-
-	for x in points
-		context.line-to points[x].x, points[x].y
-		nearpoint = [x-5]
-		if nearpoint
-			context.move-to nearpoint.x nearpoint.y
-			context.line-to points[x].x, points[x].y
-	context.stroke!
-
-	points"""
-
-"""
 sketch-brush = (context, event, points) ->
 
 	points.push [x:event.clientX, y: event.clientY]
@@ -263,5 +271,3 @@ sketch-brush = (context, event, points) ->
 			context.moveTo(lastPoint.x + (dx * 0.2), lastPoint.y + (dy * 0.2))
 			context.ctx.lineTo(points[i].x - (dx * 0.2), points[i].y - (dy * 0.2))
 			context.stroke!
-
-"""
