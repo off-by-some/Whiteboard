@@ -5,7 +5,7 @@ $ document .ready ->
 
     # Init Menu
     $ "#menu > ul > li ul" .each (index, e) ->
-      count = $ e .find(\li).length
+      count = $ e .find \li .length
       content = "<span class=\"cnt\">#count</span>"
       $ e .closest \li .children \a .append content
 
