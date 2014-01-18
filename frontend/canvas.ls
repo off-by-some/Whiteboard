@@ -238,8 +238,8 @@ canvas_script = ->
 				
 		(document.getElementById 'color-value').onblur = (e) !->
 			console.log canvas.action.fillColor.toCSS!
-			console.log 'rbga(' + this.value + ')'
-			canvas.doColorChange (Color 'rbga(' + this.value + ')')
+			# console.log 'rbga(' + this.value + ')'
+			canvas.doColorChange (Color 'rgba(' + this.value + ')')
 			
 		(document.getElementById 'radius-value').onkeypress = (e) !->
 

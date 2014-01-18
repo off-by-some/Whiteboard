@@ -259,8 +259,7 @@ canvas_script = function(){
     };
     document.getElementById('color-value').onblur = function(e){
       console.log(canvas.action.fillColor.toCSS());
-      console.log('rbga(' + this.value + ')');
-      canvas.doColorChange(Color('rbga(' + this.value + ')'));
+      canvas.doColorChange(Color('rgba(' + this.value + ')'));
     };
     document.getElementById('radius-value').onkeypress = function(e){
       canvas.action.radius = this.value;
