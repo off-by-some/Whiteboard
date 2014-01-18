@@ -53,9 +53,11 @@ canvas_script = function(){
     }
     canvas.brushRadius = brushRadius;
     canvas.history = [];
+    canvas.frameHistory = [];
+    canvas.frameHistory.push(canvas.context.getImageData(0, 0, width, height));
     canvas.users = {};
-    canvas.action = new Action('self', 'default', brushRadius, fillColor, []);
-    canvas.brush = new Brush(brushRadius, fillColor, canvas);
+    canvas.action = new Action('self', 'default', brushRadius, Color(fillColor), []);
+    canvas.brush = new Brush(brushRadius, Color(fillColor), canvas);
     canvas.connection = new WebSocket('ws://localhost:9002/');
     canvas.connection.onopen = function(){
       canvas.connection.send(JSON.stringify({
@@ -104,8 +106,8 @@ canvas_script = function(){
           canvas.users[message.id].action.radius = message.data;
           break;
         case 'color-change':
-          canvas.users[message.id].brush.color = message.data;
-          canvas.users[message.id].action.fillColor = message.data;
+          canvas.users[message.id].brush.color = Color(message.data);
+          canvas.users[message.id].action.fillColor = Color(message.data);
           break;
         case 'brush-change':
           cur_user = canvas.users[message.id];
@@ -212,6 +214,9 @@ canvas_script = function(){
         return results$;
       }()));
       canvas.history.push(tempAction);
+      if (canvas.history.length % 5 === 0) {
+        canvas.frameHistory.push(canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height));
+      }
       canvas.action.data = [];
       canvas.brush.actionEnd();
       canvas.redraw();
@@ -221,15 +226,19 @@ canvas_script = function(){
       }));
     };
     canvas.doColorChange = function(color){
+      var r, g, b;
       canvas.action.fillColor = color;
       canvas.brush.color = color;
-      document.getElementById('color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3];
-      document.getElementById('alphaslider').value = "" + color[3];
-      document.getElementById('brightnessslider').value = "" + rgb2hsl(color)[2];
+      r = Math.floor(color.getRed() * 255.0);
+      g = Math.floor(color.getGreen() * 255.0);
+      b = Math.floor(color.getBlue() * 255.0);
+      document.getElementById('color-value').value = r + "," + g + "," + b + "," + color.getAlpha();
+      document.getElementById('alphaslider').value = "" + color.getAlpha();
+      document.getElementById('brightnessslider').value = "" + color.getLightness();
       canvas.connection.send(JSON.stringify({
         id: canvas.id,
         action: 'color-change',
-        data: color
+        data: color.toCSS()
       }));
     };
     window.onkeydown = function(e){
@@ -249,9 +258,9 @@ canvas_script = function(){
       }
     };
     document.getElementById('color-value').onblur = function(e){
-      var colorparts;
-      colorparts = this.value.split(',');
-      canvas.doColorChange([parseInt(colorparts[0]), parseInt(colorparts[1]), parseInt(colorparts[2]), parseFloat(colorparts[3])]);
+      console.log(canvas.action.fillColor.toCSS());
+      console.log('rbga(' + this.value + ')');
+      canvas.doColorChange(Color('rbga(' + this.value + ')'));
     };
     document.getElementById('radius-value').onkeypress = function(e){
       canvas.action.radius = this.value;
@@ -357,23 +366,20 @@ canvas_script = function(){
       return [PosX, PosY];
     };
     document.getElementById('colorwheel').onclick = function(e){
-      var element, imgcoords, p, a;
+      var element, imgcoords, p, a, hex;
       element = document.getElementById('colorwheel');
       imgcoords = getCoordinates(e, element);
       p = canvas.colorwheel.context.getImageData(imgcoords[0], imgcoords[1], 1, 1).data;
       a = p[3] / 255.0;
-      canvas.doColorChange([p[0], p[1], p[2], a]);
+      hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
+      canvas.doColorChange(Color(hex));
       return;
     };
     document.getElementById('alphaslider').onchange = function(e){
-      canvas.doColorChange([canvas.action.fillColor[0], canvas.action.fillColor[1], canvas.action.fillColor[2], parseFloat(this.value)]);
+      canvas.doColorChange(canvas.action.fillColor.setAlpha(parseFloat(this.value)));
     };
     document.getElementById('brightnessslider').onchange = function(e){
-      var hslcolor, rgbcolor;
-      hslcolor = rgb2hsl(canvas.action.fillColor);
-      hslcolor[2] = parseFloat(this.value);
-      rgbcolor = hsl2rgb(hslcolor);
-      canvas.doColorChange([rgbcolor[0], rgbcolor[1], rgbcolor[2], canvas.action.fillColor[3]]);
+      canvas.doColorChange(canvas.action.fillColor.setLightness(parseFloat(this.value)));
     };
   };
 };

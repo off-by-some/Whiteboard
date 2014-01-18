@@ -1,55 +1,4 @@
-rgb2hsl = (rgbcolor) !->
-	r = rgbcolor[0] / 255.0
-	g = rgbcolor[1] / 255.0
-	b = rgbcolor[2] / 255.0
-	
-	var h, s, l
-	
-	min = Math.min r, g, b
-	max = Math.max r, g, b
-	delta_max = max - min
-	l = (min + max) / 2.0
-	if delta_max == 0
-		h = s = 0
-	else
-		s = if (l < 0.5) then delta_max / (max + min) else delta_max / (2.0 - max - min)
-		delta_r = (((max - r) / 6.0) + (delta_max / 2.0)) / delta_max
-		delta_g = (((max - g) / 6.0) + (delta_max / 2.0)) / delta_max
-		delta_b = (((max - b) / 6.0) + (delta_max / 2.0)) / delta_max
-		console.log "r, g, b, max: " + r + "," + g + "," + b + "," + max
-		if r == max
-			h = delta_b - delta_g
-		else if g == max
-			h = (1.0 / 3.0) + delta_r - delta_b
-		else if b == max
-			h = (2.0 / 3.0) + delta_g - delta_r
-		if h < 0.0 then h += 1.0
-		if h > 1.0 then h -= 1.0
-	return [h, s, l]
-
-hsl2rgb = (hslcolor) !->
-	var r, g, b
-	
-	h = hslcolor[0]
-	s = hslcolor[1]
-	l = hslcolor[2]
-	
-	if s == 0
-		r = g = b = Math.round (l * 255.0)
-	else
-		temp0 = if (l < 0.5) then (l * (1.0 + s)) else ((l + s) - (s * l))
-		temp1 = 2 * l - temp0
-		huefunc = (v1, v2, vH) !->
-			if vH < 0.0 then vH += 1.0
-			if vH > 1.0 then vH -= 1.0
-			if ((6.0 * vH) < 1.0) then return (v1 + (v2 - v1) * 6.0 * vH)
-			if ((2.0 * vH) < 1.0) then return v2
-			if ((3.0 * vH) < 2.0) then return (v1 + (v2 - v1) * ((2.0 / 3.0) - vH) * 6.0)
-			return v1
-		r = Math.round (255.0 * (huefunc temp0, temp1, h + (1.0 / 3.0)))
-		g = Math.round (255.0 * (huefunc temp0, temp1, h))
-		b = Math.round (255.0 * (huefunc temp0, temp1, h - (1.0 / 3.0)))
-	return [r, g, b]
+Color = net.brehaut.Color
 
 class Brush
 	(radius, color, canvas) ->
@@ -64,7 +13,7 @@ class Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.strokeStyle = @color.toCSS!
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -108,7 +57,7 @@ class WireframeBrush extends Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.strokeStyle = @color.toCSS!
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -163,8 +112,8 @@ class ColorSamplerBrush extends Brush
 		# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 		a = p[3] / 255.0
 		
-		# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-		@canvas.doColorChange [p[0], p[1], p[2], a]
+		hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+		@canvas.doColorChange (Color hex)
 	
 	actionEnd: !->
 		return
@@ -188,7 +137,7 @@ class Lenny extends Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.fillStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.fillStyle = @color.toCSS!
 		@canvas.context.font = "bold " + @radius + "px arial"
 		@canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
 		# @canvas.action.data.push [x, y] <---- This will cause problems when actionStart is called in doAction
@@ -291,7 +240,7 @@ class SketchBrush extends Brush
 		
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
-		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.strokeStyle = @color.toCSS!
 		
 		# Start a new path, because we're on a new action
 		@canvas.context.beginPath!
@@ -313,7 +262,7 @@ class SketchBrush extends Brush
 			@canvas.context.line-to x, y
 			@canvas.context.stroke!
 			@canvas.context.closePath!
-			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
 			for p in @canvas.action.data
 				dx = p[0] - x;
 				dy = p[1] - y;
@@ -326,7 +275,7 @@ class SketchBrush extends Brush
 				@canvas.context.stroke!
 				@canvas.context.closePath!
 			@canvas.context.beginPath!
-			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+			@canvas.context.strokeStyle = @color.toCSS!
 		@canvas.action.data.push [x, y]
 	
 	actionMoveData: (data) !->
@@ -334,7 +283,7 @@ class SketchBrush extends Brush
 			@canvas.context.line-to p[0], p[1]
 		@canvas.context.stroke!
 		@canvas.context.closePath!
-		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+		@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
 		for i from 1 til data.length by 1
 			for p in data
 				dx = p[0] - data[i][0];
@@ -348,7 +297,7 @@ class SketchBrush extends Brush
 			@canvas.context.stroke!
 			@canvas.context.closePath!
 		@canvas.context.beginPath!
-		@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + @color[3] + ")"
+		@canvas.context.strokeStyle = @color.toCSS!
 
 	doAction: (data) !->
 		unless data.length == 0
@@ -357,7 +306,7 @@ class SketchBrush extends Brush
 				@canvas.context.line-to p[0], p[1]
 			@canvas.context.stroke!
 			@canvas.context.closePath!
-			@canvas.context.strokeStyle = "rgba(" + @color[0] + "," + @color[1] + "," + @color[2] + "," + (@color[3] / 3.0) + ")"
+			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
 			for i from 1 til data.length by 1
 				for p in data
 					dx = p[0] - data[i][0];

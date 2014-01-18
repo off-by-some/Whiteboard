@@ -59,9 +59,9 @@ canvas_script = ->
 		canvas.users = {}
 
 		# The canvas's current action
-		canvas.action = new Action 'self', 'default', brushRadius, fillColor, []
+		canvas.action = new Action 'self', 'default', brushRadius, (Color fillColor), []
 		
-		canvas.brush = new Brush brushRadius, fillColor, canvas
+		canvas.brush = new Brush brushRadius, (Color fillColor), canvas
 
 		
 		#testing some websocket stuff
@@ -106,8 +106,8 @@ canvas_script = ->
 					canvas.users[message.id].brush.radius = message.data
 					canvas.users[message.id].action.radius = message.data
 				case 'color-change'
-					canvas.users[message.id].brush.color = message.data
-					canvas.users[message.id].action.fillColor = message.data
+					canvas.users[message.id].brush.color = Color message.data
+					canvas.users[message.id].action.fillColor = Color message.data
 				case 'brush-change'
 					cur_user = canvas.users[message.id]
 					cur_user.brush = getBrush message.data, cur_user.action.radius, cur_user.action.fillColor, canvas
@@ -210,14 +210,16 @@ canvas_script = ->
 			#send the action end
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-end'}
 			
-		# Right now, only the color sampler uses this.
 		canvas.doColorChange = (color) !->
 			canvas.action.fillColor = color
 			canvas.brush.color = color
-			(document.getElementById 'color-value').value = color[0] + "," + color[1] + "," + color[2] + "," + color[3]
-			(document.getElementById 'alphaslider').value = "" + color[3]
-			(document.getElementById 'brightnessslider').value = "" + (rgb2hsl color)[2]
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:color}
+			r = Math.floor ((color.getRed!) * 255.0)
+			g = Math.floor ((color.getGreen!) * 255.0)
+			b = Math.floor ((color.getBlue!) * 255.0)
+			(document.getElementById 'color-value').value = r + "," + g + "," + b + "," + color.getAlpha!
+			(document.getElementById 'alphaslider').value = "" + color.getAlpha!
+			(document.getElementById 'brightnessslider').value = "" + color.getLightness!
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:(color.toCSS!)}
 
 		window.onkeydown = (e) !->
 
@@ -235,9 +237,9 @@ canvas_script = ->
 				canvas.ctrlActivated = false
 				
 		(document.getElementById 'color-value').onblur = (e) !->
-			colorparts = this.value.split ','
-
-			canvas.doColorChange [(parseInt colorparts[0]), (parseInt colorparts[1]), (parseInt colorparts[2]), (parseFloat colorparts[3])]
+			console.log canvas.action.fillColor.toCSS!
+			console.log 'rbga(' + this.value + ')'
+			canvas.doColorChange (Color 'rbga(' + this.value + ')')
 			
 		(document.getElementById 'radius-value').onkeypress = (e) !->
 
@@ -322,17 +324,12 @@ canvas_script = ->
 			# getImageData gives alpha as an int from 0-255, we need a float from 0.0-1.0
 			a = p[3] / 255.0
 			
-			# hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
-			canvas.doColorChange [p[0], p[1], p[2], a]
+			hex = "rgba(" + p[0] + "," +  p[1] + "," + p[2] + "," + a + ")"
+			canvas.doColorChange (Color hex)
 			return
 		
 		(document.getElementById 'alphaslider').onchange = (e) !->
-			canvas.doColorChange [canvas.action.fillColor[0], canvas.action.fillColor[1], canvas.action.fillColor[2], (parseFloat this.value)]
+			canvas.doColorChange (canvas.action.fillColor.setAlpha (parseFloat this.value))
 		
 		(document.getElementById 'brightnessslider').onchange = (e) !->
-			#console.log this.value
-			hslcolor = rgb2hsl canvas.action.fillColor
-			#console.log "h,s,l =" + hslcolor[0] + "," + hslcolor[1] + "," + hslcolor[2]
-			hslcolor[2] = parseFloat this.value
-			rgbcolor = hsl2rgb hslcolor
-			canvas.doColorChange [rgbcolor[0], rgbcolor[1], rgbcolor[2], canvas.action.fillColor[3]]
+			canvas.doColorChange (canvas.action.fillColor.setLightness (parseFloat this.value))
