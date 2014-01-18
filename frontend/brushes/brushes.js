@@ -287,7 +287,7 @@ SketchBrush = (function(superclass){
       this.canvas.context.lineTo(x, y);
       this.canvas.context.stroke();
       this.canvas.context.closePath();
-      this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 0.3).toCSS();
+      this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
       for (i$ = 0, len$ = (ref$ = this.canvas.action.data).length; i$ < len$; ++i$) {
         p = ref$[i$];
         dx = p[0] - x;
@@ -314,7 +314,7 @@ SketchBrush = (function(superclass){
     }
     this.canvas.context.stroke();
     this.canvas.context.closePath();
-    this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 0.3).toCSS();
+    this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
     for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
       i = i$;
       for (j$ = 0, len$ = data.length; j$ < len$; ++j$) {
@@ -344,7 +344,7 @@ SketchBrush = (function(superclass){
       }
       this.canvas.context.stroke();
       this.canvas.context.closePath();
-      this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 0.3).toCSS();
+      this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
       for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
         i = i$;
         for (j$ = 0, len$ = data.length; j$ < len$; ++j$) {

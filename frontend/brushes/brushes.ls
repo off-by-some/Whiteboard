@@ -262,7 +262,7 @@ class SketchBrush extends Brush
 			@canvas.context.line-to x, y
 			@canvas.context.stroke!
 			@canvas.context.closePath!
-			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
+			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 3.0)).toCSS!
 			for p in @canvas.action.data
 				dx = p[0] - x;
 				dy = p[1] - y;
@@ -283,7 +283,7 @@ class SketchBrush extends Brush
 			@canvas.context.line-to p[0], p[1]
 		@canvas.context.stroke!
 		@canvas.context.closePath!
-		@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
+		@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 3.0)).toCSS!
 		for i from 1 til data.length by 1
 			for p in data
 				dx = p[0] - data[i][0];
@@ -306,7 +306,7 @@ class SketchBrush extends Brush
 				@canvas.context.line-to p[0], p[1]
 			@canvas.context.stroke!
 			@canvas.context.closePath!
-			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 0.3)).toCSS!
+			@canvas.context.strokeStyle = (@color.setAlpha ((@color.getAlpha!) / 3.0)).toCSS!
 			for i from 1 til data.length by 1
 				for p in data
 					dx = p[0] - data[i][0];
