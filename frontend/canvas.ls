@@ -57,12 +57,8 @@ canvas_script = ->
 		
 		# The current list of users
 		canvas.users = {}
-
-		# The canvas's current action
-		canvas.action = new Action 'self', 'default', brushRadius, (Color fillColor), []
 		
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas
-
 		
 		#testing some websocket stuff
 		canvas.connection = new WebSocket 'ws://localhost:9002/'
@@ -88,51 +84,37 @@ canvas_script = ->
 				case 'join'
 					canvas.users[message.id] = new User message.id
 					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
-					canvas.users[message.id].action = new Action message.id, 'default', 10, #000000, []
 				case 'action-start'
 					cur_user = canvas.users[message.id]
-					cur_user.action = new Action message.id, cur_user.brush.type, message.data.radius, message.data.fillColor, []
+					cur_user.brush.actionReset!
+					cur_user.brush.setActionData message.data
 				case 'action-data'
-					canvas.users[message.id].action.data.push message.data
 					canvas.userdraw message.id, message.data[0], message.data[1]
 				case 'action-end'
 					cur_user = canvas.users[message.id]
-					tempAction = (new Action message.id, cur_user.brush.type, cur_user.action.radius,
-					cur_user.action.fillColor, [x for x in cur_user.action.data])
-					canvas.history.push tempAction
+					canvas.history.push {id:message.id, data:(cur_user.brush.getActionData!)}
 				case 'undo'
 					canvas.undo message.id
 				case 'radius-change'
 					canvas.users[message.id].brush.radius = message.data
-					canvas.users[message.id].action.radius = message.data
 				case 'color-change'
 					canvas.users[message.id].brush.color = Color message.data
-					canvas.users[message.id].action.fillColor = Color message.data
 				case 'brush-change'
 					cur_user = canvas.users[message.id]
 					cur_user.brush = getBrush message.data, cur_user.action.radius, cur_user.action.fillColor, canvas
 			else
 				# console.log "server says: " + e.data
 
-		context.fillCircle = (x,y, radius, fillColor) !->
-
-			this.fillStyle = fillColor
-			this.beginPath!
-			this.moveTo x,y
-			this.arc x,y,radius,0, Math.PI * 2, false
-			this.fill!
-
 		canvas.userdraw = (user_id, x, y) !->
 			temp_user = canvas.users[user_id]
 			unless temp_user.brush.isTool
 				if canvas.isDrawing
 					canvas.brush.actionEnd!
-				temp_user.action.data.push[x,y]
-				temp_user.brush.doAction temp_user.action.data
+				temp_user.brush.actionRedraw!
+				temp_user.brush.actionMove x, y
+				temp_user.brush.actionEnd!
 				if canvas.isDrawing
-					tempcoords = canvas.action.data[0]
-					canvas.brush.actionStart tempcoords[0], tempcoords[1]
-					canvas.brush.actionMoveData canvas.action.data
+					canvas.brush.redraw!
 
 		canvas.node.onmousemove = (e) !->
 
@@ -157,7 +139,7 @@ canvas_script = ->
 			tempBrush = canvas.brush
 			# Redraw everything in history
 			for x in canvas.history
-				canvas.brush = getBrush x.brushtype, x.radius, x.fillColor, canvas
+				canvas.brush = getBrush x.data.brushtype, x.data.radius, (Color x.data.color), canvas
 				unless canvas.brush.isTool
 					canvas.brush.doAction x.data
 			canvas.brush = tempBrush
@@ -172,12 +154,9 @@ canvas_script = ->
 				if canvas.history[i].id = user_id
 					canvas.history.splice i, 1
 					break
-			if canvas.isDrawing
-				tempcoords = canvas.action.data[0]
-				canvas.brush.actionStart tempcoords[0], tempcoords[1]
-				canvas.brush.actionMoveData canvas.action.data
-				
 			canvas.redraw!
+			if canvas.isDrawing
+				canvas.brush.actionRedraw!
 
 		canvas.node.onmousedown = (e) !->
 
@@ -186,22 +165,18 @@ canvas_script = ->
 			canvas.brush.actionStart e.clientX, e.clientY
 			
 			#send the action start
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-start', data:{radius:canvas.action.radius, fillColor:canvas.action.fillColor}}
+			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
 
 
 		canvas.node.onmouseup = (e) !->
 
 			canvas.isDrawing = off
 
-			tempAction = (new Action 'self', canvas.brush.type, canvas.action.radius,
-				canvas.action.fillColor, [x for x in canvas.action.data])
-
-			canvas.history.push tempAction
+			canvas.history.push {id:'self', data:(canvas.brush.getActionData!)}
 			
+			# This needs modification
 			if (canvas.history.length % 5) == 0
 				canvas.frameHistory.push canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
-
-			canvas.action.data = []
 			
 			canvas.brush.actionEnd!
 			
@@ -211,7 +186,6 @@ canvas_script = ->
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-end'}
 			
 		canvas.doColorChange = (color) !->
-			canvas.action.fillColor = color
 			canvas.brush.color = color
 			r = Math.floor ((color.getRed!) * 255.0)
 			g = Math.floor ((color.getGreen!) * 255.0)
@@ -237,13 +211,10 @@ canvas_script = ->
 				canvas.ctrlActivated = false
 				
 		(document.getElementById 'color-value').onblur = (e) !->
-			console.log canvas.action.fillColor.toCSS!
-			# console.log 'rbga(' + this.value + ')'
 			canvas.doColorChange (Color 'rgba(' + this.value + ')')
 			
 		(document.getElementById 'radius-value').onkeypress = (e) !->
-
-			canvas.action.radius = this.value
+			
 			canvas.brush.radius = this.value
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'radius-change', data:this.value}
 
@@ -253,43 +224,43 @@ canvas_script = ->
 			
 		(document.getElementById 'csampler').onclick = (e) !->
 
-			canvas.brush = new ColorSamplerBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new ColorSamplerBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sampler'}
 
 		(document.getElementById 'pencil-brush').onclick = (e) !->
 
-			canvas.brush = new Brush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new Brush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'default'}
 
 		(document.getElementById 'wireframe-brush').onclick = (e) !->
 
-			canvas.brush = new WireframeBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new WireframeBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
 		
 		(document.getElementById 'lenny-brush').onclick = (e) !->
 
-			canvas.brush = new Lenny canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new Lenny canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
 		
 		(document.getElementById 'eraser-brush').onclick = (e) !->
 
-			canvas.brush = new EraserBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new EraserBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
 		
 		(document.getElementById 'copypaste-brush').onclick = (e) !->
 
-			canvas.brush = new CopyPasteBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new CopyPasteBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
 		
 		(document.getElementById 'sketch-brush').onclick = (e) !->
 
-			canvas.brush = new SketchBrush canvas.action.radius, canvas.action.fillColor, canvas
+			canvas.brush = new SketchBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
 			
@@ -329,7 +300,7 @@ canvas_script = ->
 			return
 		
 		(document.getElementById 'alphaslider').onchange = (e) !->
-			canvas.doColorChange (canvas.action.fillColor.setAlpha (parseFloat this.value))
+			canvas.doColorChange (canvas.brush.color.setAlpha (parseFloat this.value))
 		
 		(document.getElementById 'brightnessslider').onchange = (e) !->
-			canvas.doColorChange (canvas.action.fillColor.setLightness (parseFloat this.value))
+			canvas.doColorChange (canvas.brush.color.setLightness (parseFloat this.value))

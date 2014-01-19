@@ -10,13 +10,31 @@ Brush = (function(){
     this.radius = radius;
     this.color = color;
     this.canvas = canvas;
+    this.action_data = [];
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     this.canvas.context.moveTo(x, y);
     this.canvas.context.strokeStyle = this.color.toCSS();
     this.canvas.context.beginPath();
     this.canvas.context.lineWidth = this.radius;
     this.canvas.context.lineJoin = this.canvas.context.lineCap = 'round';
+  };
+  prototype.actionStart = function(x, y){
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+    this.actionInit(x, y);
+  };
+  prototype.actionReset = function(){
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
   };
   prototype.actionEnd = function(){
     this.canvas.context.closePath();
@@ -24,22 +42,60 @@ Brush = (function(){
   prototype.actionMove = function(x, y){
     this.canvas.context.lineTo(x, y);
     this.canvas.context.stroke();
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
-    var i$, len$, p;
-    for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-      p = data[i$];
+  prototype.actionProcessCoords = function(data){
+    var i$, ref$, len$, p;
+    for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+      p = ref$[i$];
+      this.canvas.context.lineTo(p[0], p[1]);
+      this.action_data.coords.push(p[0], p[1]);
+    }
+    this.canvas.context.stroke();
+  };
+  prototype.actionRedraw = function(){
+    var i$, ref$, len$, p;
+    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      p = ref$[i$];
       this.canvas.context.lineTo(p[0], p[1]);
     }
     this.canvas.context.stroke();
   };
+  prototype.setActionData = function(data){
+    var x;
+    this.action_data.brushtype = data.brushtype;
+    this.action_data.radius = data.radius;
+    this.action_data.color = Color(data.color);
+    this.action_data.coords = (function(){
+      var i$, ref$, len$, results$ = [];
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        x = ref$[i$];
+        results$.push(x);
+      }
+      return results$;
+    }());
+  };
+  prototype.getActionData = function(data){
+    var ret, res$, i$, ref$, len$, x;
+    ret = {};
+    ret.brushtype = this.action_data.brushtype;
+    ret.radius = this.action_data.radius;
+    ret.color = this.action_data.color;
+    res$ = [];
+    for (i$ = 0, len$ = (ref$ = this.action_data.coords).length; i$ < len$; ++i$) {
+      x = ref$[i$];
+      res$.push(x);
+    }
+    ret.coords = res$;
+    return ret;
+  };
   prototype.doAction = function(data){
-    var i$, len$, p;
-    if (data.length !== 0) {
-      this.actionStart(data[0][0], data[0][1]);
-      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-        p = data[i$];
+    var i$, ref$, len$, p;
+    if (data.coords.length !== 0) {
+      this.actionInit(data.coords[0][0], data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
         this.canvas.context.lineTo(p[0], p[1]);
       }
       this.canvas.context.stroke();
@@ -54,11 +110,20 @@ WireframeBrush = (function(superclass){
     WireframeBrush.superclass.apply(this, arguments);
     this.type = "wireframe";
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     this.canvas.context.moveTo(x, y);
     this.canvas.context.strokeStyle = this.color.toCSS();
     this.canvas.context.beginPath();
     this.canvas.context.lineWidth = this.radius;
+  };
+  prototype.actionStart = function(x, y){
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+    this.actionInit(x, y);
   };
   prototype.actionEnd = function(){
     this.canvas.context.closePath();
@@ -66,37 +131,52 @@ WireframeBrush = (function(superclass){
   prototype.actionMove = function(x, y){
     var numpoints;
     this.canvas.context.lineTo(x, y);
-    numpoints = this.canvas.action.data.length;
+    numpoints = this.action_data.coords.length;
     if (numpoints >= 4) {
-      this.canvas.context.lineTo(this.canvas.action.data[numpoints - 4][0], this.canvas.action.data[numpoints - 4][1]);
+      this.canvas.context.lineTo(this.action_data.coords[numpoints - 4][0], this.action_data.coords[numpoints - 4][1]);
     }
     this.canvas.context.stroke();
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
+  prototype.actionProcessCoords = function(data){
     var i$, to$, i, nearpoint;
-    for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
+    for (i$ = 1, to$ = data.coords.length; i$ < to$; ++i$) {
       i = i$;
-      this.canvas.context.lineTo(data[i][0], data[i][1]);
-      nearpoint = data[i - 5];
+      this.canvas.context.lineTo(data.coords[i][0], data.coords[i][1]);
+      nearpoint = data.coords[i - 5];
       if (nearpoint) {
         this.canvas.context.moveTo(nearpoint[0], nearpoint[1]);
-        this.canvas.context.lineTo(data[i][0], data[i][1]);
+        this.canvas.context.lineTo(data.coords[i][0], data.coords[i][1]);
+      }
+      this.action_data.coords.push(data.coords[i][0], data.coords[i][1]);
+    }
+    this.canvas.context.stroke();
+  };
+  prototype.actionRedraw = function(){
+    var i$, to$, i, nearpoint;
+    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+    for (i$ = 1, to$ = this.action_data.coords.length; i$ < to$; ++i$) {
+      i = i$;
+      this.canvas.context.lineTo(this.action_data.coords[i][0], this.action_data.coords[i][1]);
+      nearpoint = this.action_data.coords[i - 5];
+      if (nearpoint) {
+        this.canvas.context.moveTo(nearpoint[0], nearpoint[1]);
+        this.canvas.context.lineTo(this.action_data.coords[i][0], this.action_data.coords[i][1]);
       }
     }
     this.canvas.context.stroke();
   };
   prototype.doAction = function(data){
     var i$, to$, i, nearpoint;
-    if (data.length !== 0) {
-      this.actionStart(data[0][0], data[0][1]);
-      for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
+    if (data.coords.length !== 0) {
+      this.actionInit(data.coords[0][0], data.coords[0][1]);
+      for (i$ = 1, to$ = data.coords.length; i$ < to$; ++i$) {
         i = i$;
-        this.canvas.context.lineTo(data[i][0], data[i][1]);
-        nearpoint = data[i - 5];
+        this.canvas.context.lineTo(data.coords[i][0], data.coords[i][1]);
+        nearpoint = data.coords[i - 5];
         if (nearpoint) {
           this.canvas.context.moveTo(nearpoint[0], nearpoint[1]);
-          this.canvas.context.lineTo(data[i][0], data[i][1]);
+          this.canvas.context.lineTo(data.coords[i][0], data.coords[i][1]);
         }
       }
       this.canvas.context.stroke();
@@ -111,20 +191,32 @@ ColorSamplerBrush = (function(superclass){
     ColorSamplerBrush.superclass.apply(this, arguments);
     this.type = "sampler";
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     var p, a, hex;
     p = this.canvas.context.getImageData(x, y, 1, 1).data;
     a = p[3] / 255.0;
     hex = "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
     this.canvas.doColorChange(Color(hex));
   };
+  prototype.actionStart = function(x, y){
+    this.actionInit(x, y);
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+  };
   prototype.actionEnd = function(){
     return;
   };
   prototype.actionMove = function(x, y){
-    this.actionStart(x, y);
+    this.actionInit(x, y);
   };
-  prototype.actionMoveData = function(data){};
+  prototype.actionProcessCoords = function(data){};
+  prototype.actionRedraw = function(){
+    return;
+  };
   prototype.doAction = function(data){
     return;
   };
@@ -136,32 +228,50 @@ Lenny = (function(superclass){
     Lenny.superclass.apply(this, arguments);
     this.type = "lenny";
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     this.canvas.context.moveTo(x, y);
     this.canvas.context.fillStyle = this.color.toCSS();
     this.canvas.context.font = "bold " + this.radius + "px arial";
     this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y);
+  };
+  prototype.actionStart = function(x, y){
+    this.actionInit(x, y);
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
   };
   prototype.actionEnd = function(){
     return;
   };
   prototype.actionMove = function(x, y){
     this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", x, y);
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
-    var i$, len$, p;
-    for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-      p = data[i$];
+  prototype.actionProcessCoords = function(data){
+    var i$, ref$, len$, p;
+    for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+      p = ref$[i$];
+      this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+      this.action_data.coords.push(p[0], p[1]);
+    }
+  };
+  prototype.actionRedraw = function(){
+    var i$, ref$, len$, p;
+    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      p = ref$[i$];
       this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
     }
   };
   prototype.doAction = function(data){
-    var i$, len$, p;
-    if (data.length !== 0) {
-      this.actionStart(data[0][0], data[0][1]);
-      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-        p = data[i$];
+    var i$, ref$, len$, p;
+    if (data.coords.length !== 0) {
+      this.actionInit(data.coords[0][0], data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
         this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
       }
     }
@@ -174,12 +284,21 @@ EraserBrush = (function(superclass){
     EraserBrush.superclass.apply(this, arguments);
     this.type = "eraser";
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     var corner_x, corner_y;
     corner_x = x - this.radius >= 0 ? x - this.radius : 0;
     corner_y = y - this.radius >= 0 ? y - this.radius : 0;
     this.canvas.context.clearRect(corner_x, corner_y, this.radius * 2, this.radius * 2);
-    this.canvas.action.data.push([x, y]);
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+    this.action_data.coords.push([x, y]);
+  };
+  prototype.actionStart = function(x, y){
+    this.actionInit(x, y);
   };
   prototype.actionEnd = function(){
     return;
@@ -189,22 +308,33 @@ EraserBrush = (function(superclass){
     corner_x = x - this.radius >= 0 ? x - this.radius : 0;
     corner_y = y - this.radius >= 0 ? y - this.radius : 0;
     this.canvas.context.clearRect(corner_x, corner_y, this.radius * 2, this.radius * 2);
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
-    var i$, len$, p, corner_x, corner_y;
-    for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-      p = data[i$];
+  prototype.actionProcessCoords = function(data){
+    var i$, ref$, len$, p, corner_x, corner_y;
+    for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+      p = ref$[i$];
+      corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
+      corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
+      this.canvas.context.clearRect(corner_x, corner_y, this.radius * 2, this.radius * 2);
+      this.action_data.coords.push(p[0], p[1]);
+    }
+  };
+  prototype.actionRedraw = function(){
+    var i$, ref$, len$, p, corner_x, corner_y;
+    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      p = ref$[i$];
       corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
       corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
       this.canvas.context.clearRect(corner_x, corner_y, this.radius * 2, this.radius * 2);
     }
   };
   prototype.doAction = function(data){
-    var i$, len$, p, corner_x, corner_y;
-    if (data.length !== 0) {
-      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-        p = data[i$];
+    var i$, ref$, len$, p, corner_x, corner_y;
+    if (data.coords.length !== 0) {
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
         corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
         corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
         this.canvas.context.clearRect(corner_x, corner_y, this.radius * 2, this.radius * 2);
@@ -220,12 +350,21 @@ CopyPasteBrush = (function(superclass){
     this.type = "copypaste";
     this.imgData = void 8;
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     var corner_x, corner_y;
     corner_x = x - this.radius >= 0 ? x - this.radius : 0;
     corner_y = y - this.radius >= 0 ? y - this.radius : 0;
     this.imgData = this.canvas.context.getImageData(corner_x, corner_y, this.radius * 2, this.radius * 2);
-    this.canvas.action.data.push([x, y]);
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+    this.action_data.coords.push([x, y]);
+  };
+  prototype.actionStart = function(x, y){
+    this.actionInit(x, y);
   };
   prototype.actionEnd = function(){
     return;
@@ -235,25 +374,36 @@ CopyPasteBrush = (function(superclass){
     corner_x = x - this.radius >= 0 ? x - this.radius : 0;
     corner_y = y - this.radius >= 0 ? y - this.radius : 0;
     this.canvas.context.putImageData(this.imgData, corner_x, corner_y);
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
-    var i$, len$, p, corner_x, corner_y;
-    for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-      p = data[i$];
+  prototype.actionProcessCoords = function(data){
+    var i$, ref$, len$, p, corner_x, corner_y;
+    for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+      p = ref$[i$];
+      corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
+      corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
+      this.canvas.context.putImageData(this.imgData, corner_x, corner_y);
+      this.action_data.coords.push(p[0], p[1]);
+    }
+  };
+  prototype.actionRedraw = function(){
+    var i$, ref$, len$, p, corner_x, corner_y;
+    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      p = ref$[i$];
       corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
       corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
       this.canvas.context.putImageData(this.imgData, corner_x, corner_y);
     }
   };
   prototype.doAction = function(data){
-    var corner_x, corner_y, i$, len$, p;
-    if (data.length !== 0) {
-      corner_x = data[0][0] - this.radius >= 0 ? data[0][0] - this.radius : 0;
-      corner_y = data[0][1] - this.radius >= 0 ? data[0][1] - this.radius : 0;
+    var corner_x, corner_y, i$, ref$, len$, p;
+    if (data.coords.length !== 0) {
+      corner_x = data.coords[0][0] - this.radius >= 0 ? data.coords[0][0] - this.radius : 0;
+      corner_y = data.coords[0][1] - this.radius >= 0 ? data.coords[0][1] - this.radius : 0;
       this.imgData = this.canvas.context.getImageData(corner_x, corner_y, this.radius * 2, this.radius * 2);
-      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-        p = data[i$];
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
         corner_x = p[0] - this.radius >= 0 ? p[0] - this.radius : 0;
         corner_y = p[1] - this.radius >= 0 ? p[1] - this.radius : 0;
         this.canvas.context.putImageData(this.imgData, corner_x, corner_y);
@@ -268,27 +418,36 @@ SketchBrush = (function(superclass){
     SketchBrush.superclass.apply(this, arguments);
     this.type = "sketch";
   }
-  prototype.actionStart = function(x, y){
+  prototype.actionInit = function(x, y){
     this.canvas.context.moveTo(x, y);
     this.canvas.context.strokeStyle = this.color.toCSS();
     this.canvas.context.beginPath();
     this.canvas.context.lineWidth = this.radius;
     this.canvas.context.lineCap = 'round';
   };
+  prototype.actionStart = function(x, y){
+    this.actionInit(x, y);
+    this.action_data = {
+      brushtype: this.type,
+      radius: this.radius,
+      color: this.color.toCSS(),
+      coords: []
+    };
+  };
   prototype.actionEnd = function(){
     this.canvas.context.closePath();
   };
   prototype.actionMove = function(x, y){
     var numpoints, lastpoint, i$, ref$, len$, p, dx, dy, d;
-    numpoints = this.canvas.action.data.length;
+    numpoints = this.action_data.coords.length;
     if (numpoints > 1) {
-      lastpoint = this.canvas.action.data[numpoints - 1];
+      lastpoint = this.action_data.coords[numpoints - 1];
       this.canvas.context.moveTo(lastpoint[0], lastpoint[1]);
       this.canvas.context.lineTo(x, y);
       this.canvas.context.stroke();
       this.canvas.context.closePath();
       this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
-      for (i$ = 0, len$ = (ref$ = this.canvas.action.data).length; i$ < len$; ++i$) {
+      for (i$ = 0, len$ = (ref$ = this.action_data.coords).length; i$ < len$; ++i$) {
         p = ref$[i$];
         dx = p[0] - x;
         dy = p[1] - y;
@@ -304,27 +463,57 @@ SketchBrush = (function(superclass){
       this.canvas.context.beginPath();
       this.canvas.context.strokeStyle = this.color.toCSS();
     }
-    this.canvas.action.data.push([x, y]);
+    this.action_data.coords.push([x, y]);
   };
-  prototype.actionMoveData = function(data){
-    var i$, len$, p, to$, i, j$, dx, dy, d;
-    for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-      p = data[i$];
+  prototype.actionProcessCoords = function(data){
+    var i$, ref$, len$, p, to$, i, j$, dx, dy, d;
+    for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+      p = ref$[i$];
+      this.canvas.context.lineTo(p[0], p[1]);
+      this.action_data.coords.push(p[0], p[1]);
+    }
+    this.canvas.context.stroke();
+    this.canvas.context.closePath();
+    this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
+    for (i$ = 1, to$ = data.coords.length; i$ < to$; ++i$) {
+      i = i$;
+      for (j$ = 0, len$ = (ref$ = data.coords).length; j$ < len$; ++j$) {
+        p = ref$[j$];
+        dx = p[0] - data.coords[i][0];
+        dy = p[1] - data.coords[i][1];
+        d = dx * dx + dy * dy;
+        if (d < 1000 && !(p[0] === data.coords[i - 1][0] && p[1] === data.coords[i - 1][1])) {
+          this.canvas.context.beginPath();
+          this.canvas.context.moveTo(data.coords[i][0] + dx * 0.2, data.coords[i][1] + dy * 0.2);
+          this.canvas.context.lineTo(p[0] - dx * 0.2, p[1] - dy * 0.2);
+        }
+      }
+      this.canvas.context.stroke();
+      this.canvas.context.closePath();
+    }
+    this.canvas.context.beginPath();
+    this.canvas.context.strokeStyle = this.color.toCSS();
+  };
+  prototype.actionRedraw = function(){
+    var i$, ref$, len$, p, to$, i, j$, dx, dy, d;
+    this.actionInit(this.action_data.coords[0], this.action_data.coords[1]);
+    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      p = ref$[i$];
       this.canvas.context.lineTo(p[0], p[1]);
     }
     this.canvas.context.stroke();
     this.canvas.context.closePath();
     this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
-    for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
+    for (i$ = 1, to$ = this.action_data.coords.length; i$ < to$; ++i$) {
       i = i$;
-      for (j$ = 0, len$ = data.length; j$ < len$; ++j$) {
-        p = data[j$];
-        dx = p[0] - data[i][0];
-        dy = p[1] - data[i][1];
+      for (j$ = 0, len$ = (ref$ = this.action_data).length; j$ < len$; ++j$) {
+        p = ref$[j$];
+        dx = p[0] - this.action_data.coords[i][0];
+        dy = p[1] - this.action_data.coords[i][1];
         d = dx * dx + dy * dy;
-        if (d < 1000 && !(p[0] === data[i - 1][0] && p[1] === data[i - 1][1])) {
+        if (d < 1000 && !(p[0] === this.action_data.coords[i - 1][0] && p[1] === this.action_data.coords[i - 1][1])) {
           this.canvas.context.beginPath();
-          this.canvas.context.moveTo(data[i][0] + dx * 0.2, data[i][1] + dy * 0.2);
+          this.canvas.context.moveTo(this.action_data.coords[i][0] + dx * 0.2, this.action_data.coords[i][1] + dy * 0.2);
           this.canvas.context.lineTo(p[0] - dx * 0.2, p[1] - dy * 0.2);
         }
       }
@@ -335,26 +524,26 @@ SketchBrush = (function(superclass){
     this.canvas.context.strokeStyle = this.color.toCSS();
   };
   prototype.doAction = function(data){
-    var i$, len$, p, to$, i, j$, dx, dy, d;
-    if (data.length !== 0) {
-      this.actionStart(data[0][0], data[0][1]);
-      for (i$ = 0, len$ = data.length; i$ < len$; ++i$) {
-        p = data[i$];
+    var i$, ref$, len$, p, to$, i, j$, dx, dy, d;
+    if (data.coords.length !== 0) {
+      this.actionStart(data.coords[0][0], data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
         this.canvas.context.lineTo(p[0], p[1]);
       }
       this.canvas.context.stroke();
       this.canvas.context.closePath();
       this.canvas.context.strokeStyle = this.color.setAlpha(this.color.getAlpha() / 3.0).toCSS();
-      for (i$ = 1, to$ = data.length; i$ < to$; ++i$) {
+      for (i$ = 1, to$ = data.coords.length; i$ < to$; ++i$) {
         i = i$;
-        for (j$ = 0, len$ = data.length; j$ < len$; ++j$) {
-          p = data[j$];
-          dx = p[0] - data[i][0];
-          dy = p[1] - data[i][1];
+        for (j$ = 0, len$ = (ref$ = data.coords).length; j$ < len$; ++j$) {
+          p = ref$[j$];
+          dx = p[0] - data.coords[i][0];
+          dy = p[1] - data.coords[i][1];
           d = dx * dx + dy * dy;
-          if (d < 1000 && !(p[0] === data[i - 1][0] && p[1] === data[i - 1][1])) {
+          if (d < 1000 && !(p[0] === data.coords[i - 1][0] && p[1] === data.coords[i - 1][1])) {
             this.canvas.context.beginPath();
-            this.canvas.context.moveTo(data[i][0] + dx * 0.2, data[i][1] + dy * 0.2);
+            this.canvas.context.moveTo(data.coords[i][0] + dx * 0.2, data.coords[i][1] + dy * 0.2);
             this.canvas.context.lineTo(p[0] - dx * 0.2, p[1] - dy * 0.2);
             this.canvas.context.stroke();
             this.canvas.context.closePath();
