@@ -53,8 +53,7 @@ canvas_script = function(){
     }
     canvas.brushRadius = brushRadius;
     canvas.history = [];
-    canvas.frameHistory = [];
-    canvas.frameHistory.push(canvas.context.getImageData(0, 0, width, height));
+    canvas.actionCount = 0;
     canvas.users = {};
     canvas.brush = new Brush(brushRadius, Color(fillColor), canvas);
     canvas.connection = new WebSocket('ws://localhost:9002/');
@@ -135,21 +134,42 @@ canvas_script = function(){
         data: [x, y]
       }));
     };
-    canvas.redraw = function(){
-      var tempBrush, i$, ref$, len$, x;
-      canvas.context.clearRect(0, 0, canvas.node.width, canvas.node.height);
+    canvas.getLastFrameIndex = function(start_index){
+      var i$, i;
+      for (i$ = start_index - 1; i$ >= 0; --i$) {
+        i = i$;
+        if (canvas.history[i].frame !== void 8) {
+          return i;
+        }
+      }
+      return -1;
+    };
+    canvas.redraw = function(index){
+      var frameIndex, tempBrush, i$, to$, i, tempaction;
+      frameIndex = canvas.getLastFrameIndex(index);
+      if (frameIndex !== -1) {
+        canvas.context.putImageData(canvas.history[frameIndex].frame, 0, 0);
+      } else {
+        canvas.context.clearRect(0, 0, canvas.node.width, canvas.node.height);
+      }
       tempBrush = canvas.brush;
-      for (i$ = 0, len$ = (ref$ = canvas.history).length; i$ < len$; ++i$) {
-        x = ref$[i$];
-        canvas.brush = getBrush(x.data.brushtype, x.data.radius, Color(x.data.color), canvas);
-        if (!canvas.brush.isTool) {
-          canvas.brush.doAction(x.data);
+      for (i$ = frameIndex + 1, to$ = canvas.history.length; i$ < to$; ++i$) {
+        i = i$;
+        if (i !== index) {
+          tempaction = canvas.history[i];
+          canvas.brush = getBrush(tempaction.data.brushtype, tempaction.data.radius, Color(tempaction.data.color), canvas);
+          if (!canvas.brush.isTool) {
+            canvas.brush.doAction(tempaction.data);
+          }
+          if (tempaction.frame !== void 8) {
+            tempaction.frame = canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height);
+          }
         }
       }
       canvas.brush = tempBrush;
     };
     canvas.undo = function(user_id){
-      var i$, i;
+      var actionIndex, i$, i;
       if (user_id === 'self') {
         canvas.connection.send(JSON.stringify({
           id: canvas.id,
@@ -162,11 +182,12 @@ canvas_script = function(){
       for (i$ = canvas.history.length - 1; i$ >= 0; --i$) {
         i = i$;
         if (canvas.history[i].id = user_id) {
-          canvas.history.splice(i, 1);
+          actionIndex = i;
           break;
         }
       }
-      canvas.redraw();
+      canvas.redraw(actionIndex);
+      canvas.history.splice(actionIndex, 1);
       if (canvas.isDrawing) {
         canvas.brush.actionRedraw();
       }
@@ -181,14 +202,20 @@ canvas_script = function(){
       }));
     };
     canvas.node.onmouseup = function(e){
+      var tempframe;
       canvas.isDrawing = false;
+      tempframe = void 8;
+      if (canvas.actionCount < 5) {
+        canvas.actionCount++;
+      } else {
+        canvas.actionCount = 0;
+        tempframe = canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height);
+      }
       canvas.history.push({
         id: 'self',
+        frame: tempframe,
         data: canvas.brush.getActionData()
       });
-      if (canvas.history.length % 5 === 0) {
-        canvas.frameHistory.push(canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height));
-      }
       canvas.brush.actionEnd();
       canvas.redraw();
       canvas.connection.send(JSON.stringify({

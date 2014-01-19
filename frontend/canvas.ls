@@ -48,9 +48,8 @@ canvas_script = ->
 		# History of all commands
 		canvas.history = []
 		
-		# History of frames to minimize redraw lag
-		canvas.frameHistory = []
-		canvas.frameHistory.push (canvas.context.getImageData 0, 0, width, height)
+		# Keep track of how many actions we've done since last frame save
+		canvas.actionCount = 0
 
 		# The current buffer of commands
 		# canvas.commands = []
@@ -129,19 +128,30 @@ canvas_script = ->
 
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
 
-		# TODO: Make something that keeps a frame for every 75 actions or so
-		# so that we only have to draw 74 actions, instead of ALL of them
-		canvas.redraw = !->
+		canvas.getLastFrameIndex = (start_index) !->
+			for i from (start_index - 1) to 0 by -1
+				if canvas.history[i].frame != void
+					return i
+			return -1
+		
+		canvas.redraw = (index) !->
 
-			# Clear the screen
-			canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
+			frameIndex = canvas.getLastFrameIndex index
+			unless frameIndex == -1
+				canvas.context.putImageData canvas.history[frameIndex].frame, 0, 0
+			else
+				canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
 			# store the current brush
 			tempBrush = canvas.brush
 			# Redraw everything in history
-			for x in canvas.history
-				canvas.brush = getBrush x.data.brushtype, x.data.radius, (Color x.data.color), canvas
-				unless canvas.brush.isTool
-					canvas.brush.doAction x.data
+			for i from (frameIndex + 1) til canvas.history.length by 1
+				if i != index
+					tempaction = canvas.history[i]
+					canvas.brush = getBrush tempaction.data.brushtype, tempaction.data.radius, (Color tempaction.data.color), canvas
+					unless canvas.brush.isTool
+						canvas.brush.doAction tempaction.data
+					if tempaction.frame != void
+						tempaction.frame = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
 			canvas.brush = tempBrush
 		
 		canvas.undo = (user_id) !->
@@ -150,11 +160,13 @@ canvas_script = ->
 				canvas.connection.send JSON.stringify {id:canvas.id, action:'undo'}
 			if canvas.isDrawing
 				canvas.brush.actionEnd!
+			var actionIndex
 			for i from (canvas.history.length - 1) to 0 by -1
 				if canvas.history[i].id = user_id
-					canvas.history.splice i, 1
+					actionIndex = i
 					break
-			canvas.redraw!
+			canvas.redraw actionIndex
+			canvas.history.splice actionIndex, 1
 			if canvas.isDrawing
 				canvas.brush.actionRedraw!
 
@@ -172,11 +184,15 @@ canvas_script = ->
 
 			canvas.isDrawing = off
 
-			canvas.history.push {id:'self', data:(canvas.brush.getActionData!)}
+			tempframe = void
 			
-			# This needs modification
-			if (canvas.history.length % 5) == 0
-				canvas.frameHistory.push canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+			if canvas.actionCount < 5
+				canvas.actionCount++
+			else
+				canvas.actionCount = 0
+				tempframe = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+			
+			canvas.history.push {id:'self', frame:tempframe, data:(canvas.brush.getActionData!)}
 			
 			canvas.brush.actionEnd!
 			
