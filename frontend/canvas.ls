@@ -134,8 +134,7 @@ canvas_script = ->
 					return i
 			return -1
 		
-		canvas.redraw = (index) !->
-
+		canvas.redraw = (index, exclude) !->
 			frameIndex = canvas.getLastFrameIndex index
 			unless frameIndex == -1
 				canvas.context.putImageData canvas.history[frameIndex].frame, 0, 0
@@ -145,7 +144,7 @@ canvas_script = ->
 			tempBrush = canvas.brush
 			# Redraw everything in history
 			for i from (frameIndex + 1) til canvas.history.length by 1
-				if i != index
+				if !(exclude && (i == index))
 					tempaction = canvas.history[i]
 					canvas.brush = getBrush tempaction.data.brushtype, tempaction.data.radius, (Color tempaction.data.color), canvas
 					unless canvas.brush.isTool
@@ -165,7 +164,7 @@ canvas_script = ->
 				if canvas.history[i].id = user_id
 					actionIndex = i
 					break
-			canvas.redraw actionIndex
+			canvas.redraw actionIndex, true
 			canvas.history.splice actionIndex, 1
 			if canvas.isDrawing
 				canvas.brush.actionRedraw!
@@ -196,7 +195,7 @@ canvas_script = ->
 			
 			canvas.brush.actionEnd!
 			
-			canvas.redraw!
+			canvas.redraw (canvas.history.length - 1), false
 			
 			#send the action end
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-end'}

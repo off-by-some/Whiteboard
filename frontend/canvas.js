@@ -144,7 +144,7 @@ canvas_script = function(){
       }
       return -1;
     };
-    canvas.redraw = function(index){
+    canvas.redraw = function(index, exclude){
       var frameIndex, tempBrush, i$, to$, i, tempaction;
       frameIndex = canvas.getLastFrameIndex(index);
       if (frameIndex !== -1) {
@@ -155,7 +155,7 @@ canvas_script = function(){
       tempBrush = canvas.brush;
       for (i$ = frameIndex + 1, to$ = canvas.history.length; i$ < to$; ++i$) {
         i = i$;
-        if (i !== index) {
+        if (!(exclude && i === index)) {
           tempaction = canvas.history[i];
           canvas.brush = getBrush(tempaction.data.brushtype, tempaction.data.radius, Color(tempaction.data.color), canvas);
           if (!canvas.brush.isTool) {
@@ -186,7 +186,7 @@ canvas_script = function(){
           break;
         }
       }
-      canvas.redraw(actionIndex);
+      canvas.redraw(actionIndex, true);
       canvas.history.splice(actionIndex, 1);
       if (canvas.isDrawing) {
         canvas.brush.actionRedraw();
@@ -217,7 +217,7 @@ canvas_script = function(){
         data: canvas.brush.getActionData()
       });
       canvas.brush.actionEnd();
-      canvas.redraw();
+      canvas.redraw(canvas.history.length - 1, false);
       canvas.connection.send(JSON.stringify({
         id: canvas.id,
         action: 'action-end'
