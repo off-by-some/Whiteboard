@@ -1,8 +1,9 @@
 Color = net.brehaut.Color
 
+# This is the class upon which all other brushes are based
 class Brush
+	# Constructor
 	(radius, color, canvas) ->
-	
 		@type = "default"
 		@isTool = false
 		@radius = radius
@@ -10,6 +11,8 @@ class Brush
 		@canvas = canvas
 		@action_data = []
 	
+	# This sets us up for drawing, but doesn't clear action data
+	# It is useful for redraws
 	actionInit: (x,y) !->
 		@canvas.context.moveTo x, y
 		# Set the line's color from the brush's color
@@ -24,42 +27,51 @@ class Brush
 		# get rid of those nasty turns
 		@canvas.context.line-join = @canvas.context.line-cap = 'round'
 	
+	# This sets us up for drawing and clears action data;
+	# It is for starting a new actions
 	actionStart: (x, y) !->
 		# Clear action data
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 		@actionInit x, y
 	
+	# Reset action data
 	actionReset: !->
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 	
+	# End of an action; just closes the current path
 	actionEnd: !->
 		
 		@canvas.context.closePath!
 	
+	# Process a single new coordinate
 	actionMove: (x, y) !->
 		
 		@canvas.context.line-to x, y
 		@canvas.context.stroke!
 		@action_data.coords.push [x, y]
 	
+	# Process a set of new coordinates
 	actionProcessCoords: (data) !->
 		for p in data.coords
 			@canvas.context.line-to p[0], p[1]
 			@action_data.coords.push p[0], p[1]
 		@canvas.context.stroke!
 	
+	# Redraw all coordinates so far
 	actionRedraw: !->
 		@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
 		for p in @action_data
 			@canvas.context.line-to p[0], p[1]
 		@canvas.context.stroke!
 	
+	# Sets the action's data
 	setActionData: (data) !->
 		@action_data.brushtype = data.brushtype
 		@action_data.radius = data.radius
 		@action_data.color = Color data.color
 		@action_data.coords = [x for x in data.coords]
 	
+	# Gets the action's data; useful for action history
 	getActionData: (data) !->
 		ret = {}
 		ret.brushtype = @action_data.brushtype
@@ -68,6 +80,7 @@ class Brush
 		ret.coords = [x for x in @action_data.coords]
 		return ret
 	
+	# Just takes action data given and draws it.
 	doAction: (data) !->
 		unless data.coords.length == 0
 			@actionInit data.coords[0][0], data.coords[0][1]

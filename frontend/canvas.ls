@@ -1,22 +1,23 @@
-class Action
-	(id, brushtype, radius, color, coords) ->
-		@id = id
-		@brushtype = brushtype
-		@radius = radius
-		@fillColor = color
-		@data = coords
-
+# For storing information about a user; doesn't have
+# much use now, but eventually it might be expanded
 class User
 	(id) ->
 		@id = id
 
+# Putting everything in an expression helps require.js
 canvas_script = ->
+	# Sets up the canvas element
 	createCanvas = (parent, width=100, height=100) ->
 
 		canvas = {}
 		canvas.node = document.createElement 'canvas'
+		
+		# Eventually we'll have layering, so we handle
+		# this attribute programatically
+		canvas.node.setAttribute "z-index", "1"
 		canvas.node.width = width
 		canvas.node.height = height
+		# Default cursor is for the default brush: pencil
 		canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 		canvas.context = canvas.node.getContext '2d'
 		parent.appendChild canvas.node
@@ -57,6 +58,7 @@ canvas_script = ->
 		# The current list of users
 		canvas.users = {}
 		
+		# Initialize this user's brush
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas
 		
 		#testing some websocket stuff
@@ -71,7 +73,8 @@ canvas_script = ->
 		canvas.connection.onerror = (error) !->
 
 			# console.log 'websocket dun goofed: ' + error
-			
+		
+		# Message processing
 		canvas.connection.onmessage = (e) !->
 
 			# message format:
@@ -104,14 +107,21 @@ canvas_script = ->
 			else
 				# console.log "server says: " + e.data
 
+		# This is for when we need to render what other users have drawn
 		canvas.userdraw = (user_id, x, y) !->
 			temp_user = canvas.users[user_id]
+			# Currently there is no reason to handle the results of a tool
 			unless temp_user.brush.isTool
+				# First we stop the current user's drawing so paths don't get messed up
 				if canvas.isDrawing
 					canvas.brush.actionEnd!
+				# actionRedraw will draw everything from the other user up until this point
 				temp_user.brush.actionRedraw!
+				# Then we draw the current data
 				temp_user.brush.actionMove x, y
+				# and close the path so this user can continue drawing
 				temp_user.brush.actionEnd!
+				# Then we restore this user's path
 				if canvas.isDrawing
 					canvas.brush.redraw!
 
@@ -122,18 +132,22 @@ canvas_script = ->
 			x = e.clientX #- this.offsetLeft
 			y = e.clientY #- this.offsetTop
 			
+			# Process new coordinate data, draw accordingly
 			canvas.brush.actionMove x, y
 
 			# console.log canvas.commands
 
+			# Send the coords to any other users
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
 
+		# Gets the index of the closest useable frame less than specifed index
 		canvas.getLastFrameIndex = (start_index) !->
 			for i from (start_index - 1) to 0 by -1
 				if canvas.history[i].frame != void
 					return i
 			return -1
 		
+		# Redraw everything after the given index, optionally excluding it
 		canvas.redraw = (index, exclude) !->
 			frameIndex = canvas.getLastFrameIndex index
 			unless frameIndex == -1
@@ -149,12 +163,14 @@ canvas_script = ->
 					canvas.brush = getBrush tempaction.data.brushtype, tempaction.data.radius, (Color tempaction.data.color), canvas
 					unless canvas.brush.isTool
 						canvas.brush.doAction tempaction.data
+					# Update any frames after the one we used
 					if tempaction.frame != void
 						tempaction.frame = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
 			canvas.brush = tempBrush
 		
+		# Undo the most recent action by the specified user
 		canvas.undo = (user_id) !->
-
+			# If it's this user, then send an undo action to other users
 			if user_id == 'self'
 				canvas.connection.send JSON.stringify {id:canvas.id, action:'undo'}
 			if canvas.isDrawing
@@ -173,6 +189,7 @@ canvas_script = ->
 
 			canvas.isDrawing = yes
 			
+			# This is where actions start
 			canvas.brush.actionStart e.clientX, e.clientY
 			
 			#send the action start
@@ -185,21 +202,26 @@ canvas_script = ->
 
 			tempframe = void
 			
+			# Store frames occasionaly
 			if canvas.actionCount < 5
 				canvas.actionCount++
 			else
 				canvas.actionCount = 0
 				tempframe = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
 			
+			# Push the current action data into history so we can undo or redraw it later
 			canvas.history.push {id:'self', frame:tempframe, data:(canvas.brush.getActionData!)}
 			
+			# End the current action
 			canvas.brush.actionEnd!
 			
+			# Redraw to make lines prettier
 			canvas.redraw (canvas.history.length - 1), false
 			
 			#send the action end
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-end'}
-			
+		
+		# This handles color changes, it is a piss-poor substitute for an actual MVC architecture
 		canvas.doColorChange = (color) !->
 			canvas.brush.color = color
 			r = Math.floor ((color.getRed!) * 255.0)
@@ -210,33 +232,41 @@ canvas_script = ->
 			(document.getElementById 'brightnessslider').value = "" + color.getLightness!
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:(color.toCSS!)}
 
+		# We really need to do more key combos...
 		window.onkeydown = (e) !->
-
+			# Note that we have a key press
 			if e.ctrlKey
 				canvas.ctrlActivated = true
 
 		window.onkeyup = (e) !->
 
+			# See if we have a ctrl+z
 			switch e.keyCode
 			case 90
 				if canvas.ctrlActivated
 					canvas.undo 'self'
-
+			
+			# end key press
 			if e.ctrlKey
 				canvas.ctrlActivated = false
-				
+		
+		# This is called when a user types in a color value
+		# Could be better, it really should happen either on blur or when enter is pressed
 		(document.getElementById 'color-value').onblur = (e) !->
 			canvas.doColorChange (Color 'rgba(' + this.value + ')')
-			
+		
+		# Handle users typing in radius values
+		# There is a better input type for this, but FF doesn't support it yet
 		(document.getElementById 'radius-value').onkeypress = (e) !->
 			
 			canvas.brush.radius = this.value
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'radius-change', data:this.value}
 
+		# Downloads ftw!  I really do need to code up that svg exporter though...
 		(document.getElementById 'download').onclick = (e) !->
 
 			window.open (canvas.node.toDataURL!), 'Download'
-			
+		
 		(document.getElementById 'csampler').onclick = (e) !->
 
 			canvas.brush = new ColorSamplerBrush canvas.brush.radius, canvas.brush.color, canvas
@@ -278,7 +308,8 @@ canvas_script = ->
 			canvas.brush = new SketchBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
-			
+		
+		# Be absoulely certain we get the right coordinates	
 		getCoordinates = (e, element) !->
 			PosX = 0
 			PosY = 0
