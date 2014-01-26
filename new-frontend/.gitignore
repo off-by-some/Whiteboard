@@ -9,3 +9,6 @@
 
 # Generated from compiling SASS to CSS.
 /.sass-cache
+
+# Ignore the bower components.
+/bower_components
