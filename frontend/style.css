@@ -34,14 +34,21 @@ body {
   font-family:  'Source Sans Pro', sans-serif;
 }
 
+#canvasparent {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 99.5%;
+  height: 99%;
+}
+
 #canvas {
+  position: relative;
+}
+#canvas canvas{
   position:absolute;
-  z-index: 1;
   top:0px;
   left:0px;
-  width:99.5%;
-  height:99%;
-  /*border: 2px solid #777;*/
 }
 
 .showhide {
