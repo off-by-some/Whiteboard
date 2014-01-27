@@ -1,0 +1,23 @@
+$namespace: 'home';
+
+.overlay {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+##{$namespace}, ##{$namespace} .title {
+  @extend .overlay;
+}
+##{$namespace} .title {
+  background: rgba(0,0,0,0.15);
+}
+##{$namespace} .title h1 {
+  position: absolute;
+  left: 45%;
+  top: 45%;
+  @include user-select(none);
+  @include wb-font($size: 14pt);
+}

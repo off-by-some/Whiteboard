@@ -1,0 +1,10 @@
+@mixin wb-font ($color: $font-color,
+                $family: $font-family,
+                $size: 12pt
+                ) {
+  color: $color;
+  font: {
+    family: $family;
+    size: $size;
+  }
+}

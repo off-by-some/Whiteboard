@@ -44,40 +44,40 @@ $FontAwesomePath: "/components/font-awesome/font";
 
 // Modules
 // -------
-@import "components/bootstrap-sass/lib/variables";
-@import "components/bootstrap-sass/lib/mixins";
-@import "components/bootstrap-sass/lib/reset";
-@import "components/bootstrap-sass/lib/scaffolding";
-@import "components/bootstrap-sass/lib/grid";
-@import "components/bootstrap-sass/lib/layouts";
-@import "components/bootstrap-sass/lib/type";
-@import "components/bootstrap-sass/lib/code";
-@import "components/bootstrap-sass/lib/forms";
-@import "components/bootstrap-sass/lib/tables";
-@import "components/bootstrap-sass/lib/dropdowns";
-@import "components/bootstrap-sass/lib/wells";
-@import "components/bootstrap-sass/lib/component-animations";
-@import "components/bootstrap-sass/lib/close";
-@import "components/bootstrap-sass/lib/buttons";
-@import "components/bootstrap-sass/lib/button-groups";
-@import "components/bootstrap-sass/lib/alerts";
-@import "components/bootstrap-sass/lib/navs";
-@import "components/bootstrap-sass/lib/navbar";
-@import "components/bootstrap-sass/lib/breadcrumbs";
-@import "components/bootstrap-sass/lib/pagination";
-@import "components/bootstrap-sass/lib/pager";
-@import "components/bootstrap-sass/lib/modals";
-@import "components/bootstrap-sass/lib/tooltip";
-@import "components/bootstrap-sass/lib/popovers";
-@import "components/bootstrap-sass/lib/thumbnails";
-@import "components/bootstrap-sass/lib/media";
-@import "components/bootstrap-sass/lib/labels-badges";
-@import "components/bootstrap-sass/lib/progress-bars";
-@import "components/bootstrap-sass/lib/accordion";
-@import "components/bootstrap-sass/lib/carousel";
-@import "components/bootstrap-sass/lib/hero-unit";
-@import "components/bootstrap-sass/lib/utilities";
-@import "components/bootstrap-sass/lib/responsive";
+// @import "components/bootstrap-sass/lib/variables";
+// @import "components/bootstrap-sass/lib/mixins";
+// @import "components/bootstrap-sass/lib/reset";
+// @import "components/bootstrap-sass/lib/scaffolding";
+// @import "components/bootstrap-sass/lib/grid";
+// @import "components/bootstrap-sass/lib/layouts";
+// @import "components/bootstrap-sass/lib/type";
+// @import "components/bootstrap-sass/lib/code";
+// @import "components/bootstrap-sass/lib/forms";
+// @import "components/bootstrap-sass/lib/tables";
+// @import "components/bootstrap-sass/lib/dropdowns";
+// @import "components/bootstrap-sass/lib/wells";
+// @import "components/bootstrap-sass/lib/component-animations";
+// @import "components/bootstrap-sass/lib/close";
+// @import "components/bootstrap-sass/lib/buttons";
+// @import "components/bootstrap-sass/lib/button-groups";
+// @import "components/bootstrap-sass/lib/alerts";
+// @import "components/bootstrap-sass/lib/navs";
+// @import "components/bootstrap-sass/lib/navbar";
+// @import "components/bootstrap-sass/lib/breadcrumbs";
+// @import "components/bootstrap-sass/lib/pagination";
+// @import "components/bootstrap-sass/lib/pager";
+// @import "components/bootstrap-sass/lib/modals";
+// @import "components/bootstrap-sass/lib/tooltip";
+// @import "components/bootstrap-sass/lib/popovers";
+// @import "components/bootstrap-sass/lib/thumbnails";
+// @import "components/bootstrap-sass/lib/media";
+// @import "components/bootstrap-sass/lib/labels-badges";
+// @import "components/bootstrap-sass/lib/progress-bars";
+// @import "components/bootstrap-sass/lib/accordion";
+// @import "components/bootstrap-sass/lib/carousel";
+// @import "components/bootstrap-sass/lib/hero-unit";
+// @import "components/bootstrap-sass/lib/utilities";
+// @import "components/bootstrap-sass/lib/responsive";
 
 // Fonts
 // =====
@@ -87,6 +87,11 @@ $FontAwesomePath: "/components/font-awesome/font";
 
 // Variables
 // ---------
+$font-color: #444;
+$font-family: 'Source Sans Pro', sans-serif;
 
 // Modules
 // -------
+@import "mixins";
+@import "views/home";
+
