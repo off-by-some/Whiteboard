@@ -8,7 +8,7 @@ Note to developers
 Grunt will compile all of your livescript for you!
 
 
-To get this versoin working you need npm. 
+To get the Chaplin version (new-frontend) working you need npm. 
  - npm install -g grunt-cli bower
  - npm install && bower install
  
