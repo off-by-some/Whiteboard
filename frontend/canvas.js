@@ -182,13 +182,18 @@ canvas_script = function(){
       }
     };
     canvas.node.onmousedown = function(e){
-      canvas.isDrawing = true;
-      canvas.brush.actionStart(e.clientX, e.clientY);
-      canvas.connection.send(JSON.stringify({
-        id: canvas.id,
-        action: 'action-start',
-        data: canvas.brush.getActionData()
-      }));
+      switch (e.button) {
+        // "Only care about the left click"
+        case 0:
+          canvas.isDrawing = true;
+          canvas.brush.actionStart(e.clientX, e.clientY);
+          canvas.connection.send(JSON.stringify({
+            id: canvas.id,
+            action: 'action-start',
+            data: canvas.brush.getActionData()
+          }));
+          break;
+      }
     };
     canvas.node.onmouseup = function(e){
       var tempframe;
