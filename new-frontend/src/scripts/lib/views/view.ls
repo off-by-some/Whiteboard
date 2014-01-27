@@ -43,6 +43,9 @@ module.exports = class View extends chaplin.View
     # Apply basic stickit bindings.
     @stickit! if @auto-stickit and @bindings and @model
 
+    # Stick the state to the view
+    @stickit @state, @state-bindings
+
     # Iterate through subviews and evaluate and render them.
     for subview in @subviews
       if typeof subview.container is 'string'
@@ -52,5 +55,8 @@ module.exports = class View extends chaplin.View
 
   dispose: ->
     return if @disposed
+
+    # Unstick our models.
     @unstickit! if @auto-stickit and @bindings and @model
+
     super ...

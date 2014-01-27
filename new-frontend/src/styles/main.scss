@@ -87,11 +87,14 @@ $FontAwesomePath: "/components/font-awesome/font";
 
 // Variables
 // ---------
-$font-color: #444;
-$font-family: 'Source Sans Pro', sans-serif;
+$wb-font-color: #444;
+$wb-font-family: 'Source Sans Pro', sans-serif;
+$wb-border: 1px solid rgba(#555, 0.3);
+$wb-active-text: #179ef8;
 
 // Modules
 // -------
 @import "mixins";
-@import "views/home";
+@import "views/canvas";
+@import "views/strokes";
 
