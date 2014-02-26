@@ -62,7 +62,7 @@ canvas_script = ->
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas
 		
 		#testing some websocket stuff
-		canvas.connection = new WebSocket 'ws://localhost:9002/'
+		canvas.connection = new WebSocket 'ws://localhost:9002/broadcast'
 		canvas.connection.onopen = !->
 
 			canvas.connection.send JSON.stringify {id:canvas.id, action:'join'}
@@ -245,6 +245,14 @@ canvas_script = ->
 			case 90
 				if canvas.ctrlActivated
 					canvas.undo 'self'
+			# If its ctrl + 0
+			case 48
+				if canvas.ctrlActivated
+					x = canvas.history[(canvas.history.length - 1)]
+					x.frame = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+
+					canvas.history = []
+					canvas.history.push x
 			
 			# end key press
 			if e.ctrlKey
