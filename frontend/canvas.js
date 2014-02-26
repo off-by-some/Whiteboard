@@ -45,7 +45,7 @@ canvas_script = function(){
     canvas.actionCount = 0;
     canvas.users = {};
     canvas.brush = new Brush(brushRadius, Color(fillColor), canvas);
-    canvas.connection = new WebSocket('ws://localhost:9002/');
+    canvas.connection = new WebSocket('ws://localhost:9002/broadcast');
     canvas.connection.onopen = function(){
       canvas.connection.send(JSON.stringify({
         id: canvas.id,
@@ -105,7 +105,7 @@ canvas_script = function(){
         temp_user.brush.actionMove(x, y);
         temp_user.brush.actionEnd();
         if (canvas.isDrawing) {
-          canvas.brush.redraw();
+          canvas.brush.actionRedraw();
         }
       }
     };
@@ -182,18 +182,13 @@ canvas_script = function(){
       }
     };
     canvas.node.onmousedown = function(e){
-      switch (e.button) {
-        // "Only care about the left click"
-        case 0:
-          canvas.isDrawing = true;
-          canvas.brush.actionStart(e.clientX, e.clientY);
-          canvas.connection.send(JSON.stringify({
-            id: canvas.id,
-            action: 'action-start',
-            data: canvas.brush.getActionData()
-          }));
-          break;
-      }
+      canvas.isDrawing = true;
+      canvas.brush.actionStart(e.clientX, e.clientY);
+      canvas.connection.send(JSON.stringify({
+        id: canvas.id,
+        action: 'action-start',
+        data: canvas.brush.getActionData()
+      }));
     };
     canvas.node.onmouseup = function(e){
       var tempframe;
@@ -238,10 +233,19 @@ canvas_script = function(){
       }
     };
     window.onkeyup = function(e){
+      var x;
       switch (e.keyCode) {
       case 90:
         if (canvas.ctrlActivated) {
           canvas.undo('self');
+        }
+        break;
+      case 48:
+        if (canvas.ctrlActivated) {
+          x = canvas.history[canvas.history.length - 1];
+          x.frame = canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height);
+          canvas.history = [];
+          canvas.history.push(x);
         }
       }
       if (e.ctrlKey) {

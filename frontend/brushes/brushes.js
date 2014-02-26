@@ -8,7 +8,7 @@ Brush = (function(){
     this.type = "default";
     this.isTool = false;
     this.radius = radius;
-    this.color = color;
+    this.color = Color(color);
     this.canvas = canvas;
     this.action_data = [];
   }
@@ -27,6 +27,8 @@ Brush = (function(){
       coords: []
     };
     this.actionInit(x, y);
+    console.log("I'm a faggot. ");
+    console.log(this.action_data);
   };
   prototype.actionReset = function(){
     this.action_data = {
@@ -55,18 +57,22 @@ Brush = (function(){
   };
   prototype.actionRedraw = function(){
     var i$, ref$, len$, p;
-    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
-    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
-      p = ref$[i$];
-      this.canvas.context.lineTo(p[0], p[1]);
+    console.log("I'm a bitch. ");
+    console.log(this.action_data);
+    if (this.action_data.coords.length !== 0) {
+      this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+        p = ref$[i$];
+        this.canvas.context.lineTo(p[0], p[1]);
+      }
+      this.canvas.context.stroke();
     }
-    this.canvas.context.stroke();
   };
   prototype.setActionData = function(data){
     var x;
     this.action_data.brushtype = data.brushtype;
     this.action_data.radius = data.radius;
-    this.action_data.color = Color(data.color);
+    this.action_data.color = data.color;
     this.action_data.coords = (function(){
       var i$, ref$, len$, results$ = [];
       for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
@@ -75,6 +81,8 @@ Brush = (function(){
       }
       return results$;
     }());
+    console.log("I'm a schlong-swallowing cock goblin. ");
+    console.log(this.action_data);
   };
   prototype.getActionData = function(data){
     var ret, res$, i$, ref$, len$, x;

@@ -123,7 +123,7 @@ canvas_script = ->
 				temp_user.brush.actionEnd!
 				# Then we restore this user's path
 				if canvas.isDrawing
-					canvas.brush.redraw!
+					canvas.brush.actionRedraw!
 
 		canvas.node.onmousemove = (e) !->
 
