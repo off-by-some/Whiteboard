@@ -79,13 +79,19 @@ canvas_script = ->
 
 			# message format:
 			# {id:"aeuaouaeid_here", action:"action_name", data:{whatever_you_want_in_here_i_guess}}
-			console.log(e.data)
+			# console.log(e.data)
 			message = JSON.parse(e.data)
-			if message.id
+			if message.id and message.id is not canvas.id
+				# console.log "my name is " + message.id + " not " canvas.id 
 				switch message.action
 				case 'join'
 					canvas.users[message.id] = new User message.id
 					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
+					canvas.connection.send JSON.stringify {id:canvas.id, action:'been_here_fgt'}
+				case 'been_here_fgt'
+					canvas.users[message.id] = new User message.id
+					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
+
 				case 'action-start'
 					cur_user = canvas.users[message.id]
 					cur_user.brush.actionReset!

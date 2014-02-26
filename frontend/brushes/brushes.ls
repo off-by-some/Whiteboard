@@ -33,7 +33,7 @@ class Brush
 		# Clear action data
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 		@actionInit x, y
-		console.log @action_data
+		# console.log @action_data
 	
 	# Reset action data
 	actionReset: !->
@@ -60,7 +60,7 @@ class Brush
 	
 	# Redraw all coordinates so far
 	actionRedraw: !->
-		console.log @action_data
+		# console.log @action_data
 		unless @action_data.coords.length == 0
 			@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
 			for p in @action_data
@@ -73,7 +73,7 @@ class Brush
 		@action_data.radius = data.radius
 		@action_data.color = data.color
 		@action_data.coords = [x for x in data.coords]
-		console.log @action_data
+		# console.log @action_data
 	
 	# Gets the action's data; useful for action history
 	getActionData: (data) !->
