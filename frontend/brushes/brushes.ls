@@ -33,7 +33,6 @@ class Brush
 		# Clear action data
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 		@actionInit x, y
-		console.log "I'm a faggot. "
 		console.log @action_data
 	
 	# Reset action data
@@ -61,7 +60,6 @@ class Brush
 	
 	# Redraw all coordinates so far
 	actionRedraw: !->
-		console.log "I'm a bitch. "
 		console.log @action_data
 		unless @action_data.coords.length == 0
 			@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
@@ -75,7 +73,6 @@ class Brush
 		@action_data.radius = data.radius
 		@action_data.color = data.color
 		@action_data.coords = [x for x in data.coords]
-		console.log "I'm a schlong-swallowing cock goblin. "
 		console.log @action_data
 	
 	# Gets the action's data; useful for action history
