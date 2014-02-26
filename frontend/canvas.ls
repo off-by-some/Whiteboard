@@ -94,6 +94,7 @@ canvas_script = ->
 				case 'been_here_fgt'
 					canvas.users[message.id] = new User message.id
 					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
+					(document.getElementById 'userlist').innerHTML += message.id + "<hr />"
 
 				case 'action-start'
 					cur_user = canvas.users[message.id]
