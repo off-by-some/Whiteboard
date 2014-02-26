@@ -13,8 +13,8 @@ To get the Chaplin version (new-frontend) working you need npm.
  - npm install && bower install
  
  
-Sym-link your bower components. Or read up on grunt and submit a pull request.
- - ln -s ../../bower_components components
+navigate to "new-frontend" and sym-link your bower components. Or read up on grunt and submit a pull request.
+ - ln -s bower_components components
  
  
 Run that bad boy.
