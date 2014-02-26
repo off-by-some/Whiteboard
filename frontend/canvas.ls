@@ -43,6 +43,8 @@ canvas_script = ->
 		for i from 0 to 20 by 1
 			canvas.id += pool.charAt (Math.floor ((Math.random!) * pool.length))
 
+		(document.getElementById 'userlist').innerHTML = "Your ID: " + canvas.id + "<br /><hr />"
+
 		# Which brush stroke radius to start out at
 		canvas.brushRadius = brushRadius
 
@@ -88,9 +90,11 @@ canvas_script = ->
 					canvas.users[message.id] = new User message.id
 					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
 					canvas.connection.send JSON.stringify {id:canvas.id, action:'been_here_fgt'}
+					(document.getElementById 'userlist').innerHTML += message.id + "<hr />"
 				case 'been_here_fgt'
 					canvas.users[message.id] = new User message.id
 					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
+					(document.getElementById 'userlist').innerHTML += message.id + "<hr />"
 
 				case 'action-start'
 					cur_user = canvas.users[message.id]
