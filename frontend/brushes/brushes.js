@@ -27,8 +27,7 @@ Brush = (function(){
       coords: []
     };
     this.actionInit(x, y);
-    console.log("I'm a faggot. ");
-    console.log(this.action_data);
+    this.action_data.coords.push([x, y]);
   };
   prototype.actionReset = function(){
     this.action_data = {
@@ -42,8 +41,12 @@ Brush = (function(){
     this.canvas.context.closePath();
   };
   prototype.actionMove = function(x, y){
-    this.canvas.context.lineTo(x, y);
-    this.canvas.context.stroke();
+    if (this.action_data.coords.length !== 0) {
+      this.canvas.context.lineTo(x, y);
+      this.canvas.context.stroke();
+    } else {
+      this.actionInit(x, y);
+    }
     this.action_data.coords.push([x, y]);
   };
   prototype.actionProcessCoords = function(data){
@@ -57,11 +60,9 @@ Brush = (function(){
   };
   prototype.actionRedraw = function(){
     var i$, ref$, len$, p;
-    console.log("I'm a bitch. ");
-    console.log(this.action_data);
     if (this.action_data.coords.length !== 0) {
       this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
-      for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+      for (i$ = 0, len$ = (ref$ = this.action_data.coords).length; i$ < len$; ++i$) {
         p = ref$[i$];
         this.canvas.context.lineTo(p[0], p[1]);
       }
@@ -81,8 +82,6 @@ Brush = (function(){
       }
       return results$;
     }());
-    console.log("I'm a schlong-swallowing cock goblin. ");
-    console.log(this.action_data);
   };
   prototype.getActionData = function(data){
     var ret, res$, i$, ref$, len$, x;
@@ -250,6 +249,7 @@ Lenny = (function(superclass){
       color: this.color.toCSS(),
       coords: []
     };
+    this.action_data.coords.push([x, y]);
   };
   prototype.actionEnd = function(){
     return;
@@ -268,10 +268,12 @@ Lenny = (function(superclass){
   };
   prototype.actionRedraw = function(){
     var i$, ref$, len$, p;
-    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
-    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
-      p = ref$[i$];
-      this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+    if (this.action_data.coords.length !== 0) {
+      this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+        p = ref$[i$];
+        this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+      }
     }
   };
   prototype.doAction = function(data){
