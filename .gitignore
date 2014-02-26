@@ -13,3 +13,6 @@
 # Database files
 *.sqlite*
 *.db
+
+
+*.js
