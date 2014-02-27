@@ -38,11 +38,6 @@ module.exports = (grunt) ->
     # -------
     clean:
       all: [
-        "#{ baseDirectory }/index.html",
-        "#{ baseDirectory }/styles/**/*",
-        "#{ baseDirectory }/scripts/**/*",
-        "#{ baseDirectory }/robots.txt",
-        "#{ baseDirectory }/settings.json",
         "#{ baseDirectory }/temp/**/*"
         "!#{ baseDirectory }/temp/components"
         "!#{ baseDirectory }/temp/components/**/*"
@@ -64,6 +59,15 @@ module.exports = (grunt) ->
             '!**/*.haml'
           ]
         ]
+
+    # Symlink
+    # -------
+    # Ensure that the temporary directories can access the bower components.
+    symlink:
+      bower:
+        overwrite: true
+        src: "#{ baseDirectory }/bower_components"
+        dest: "#{ baseDirectory }/temp/components"
 
     # LiveScript
     # ----------
@@ -219,6 +223,7 @@ module.exports = (grunt) ->
     'sass'
     'configureProxies:temp'
     'connect:temp'
-    'proxy',
+    'symlink:bower'
+    'proxy'
     'watch'
   ]

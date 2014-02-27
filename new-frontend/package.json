@@ -13,6 +13,7 @@
     "grunt-contrib-htmlmin": "0.1.x",
     "connect-livereload": "~0.3.2",
     "grunt-connect-proxy": "~0.1.7",
+    "grunt-contrib-symlink": "~0.2.0",
     "grunt-contrib-watch": "~0.5.3",
     "grunt-haml": "0.7.x",
     "grunt-livescript": "0.5.x",
