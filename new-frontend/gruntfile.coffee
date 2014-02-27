@@ -136,17 +136,14 @@ module.exports = (grunt) ->
         port: 4501 + portOffset
         hostname: hostname
         middleware: (connect, options) -> [
+          require('grunt-connect-proxy/lib/utils').proxyRequest
           require('connect-url-rewrite') ['^[^.]*$ /']
-          require('grunt-contrib-livereload/lib/utils').livereloadSnippet
+          require('connect-livereload') {port: 12000 + portOffset}
           connect.static options.base
         ]
 
-      build:
-        options:
-          keepalive: true
-          base: "#{ baseDirectory }"
-
       temp:
+        proxies: [{context: '/api', host: hostname, port: 8000}]
         options:
           base: "#{ baseDirectory }/temp"
 
@@ -158,33 +155,28 @@ module.exports = (grunt) ->
           port: 3501 + portOffset
           router: router
 
-    # Watcher
-    # -------
-    regarde:
+    # Watch
+    # -----
+    watch:
+      sass:
+        files: ["#{ baseDirectory }/src/**/*.scss"]
+        tasks: ["sass:compile"]
+
       livescript:
-        files: "#{ baseDirectory }/src/**/*.ls"
-        tasks: ['script', 'livereload']
+        files: ["#{ baseDirectory }/src/**/*.ls"]
+        tasks: ["livescript"]
 
       haml:
-        files: "#{ baseDirectory }/src/templates/**/*.haml"
-        tasks: ['haml:compile', 'livereload']
+        files: ["#{ baseDirectory }/src/**/*.haml"]
+        tasks: ["haml"]
 
-      index:
-        files: "#{ baseDirectory }/src/index.haml"
-        tasks: ['haml:index', 'livereload']
-
-      sass:
-        files: "#{ baseDirectory }/src/styles/**/*.scss"
-        tasks: ['sass:compile', 'livereload']
-
-      static:
-        tasks: ['copy:static', 'livereload']
+      livereload:
         files: [
-          "#{ baseDirectory }/src/**/*.js"
-          '!**/*.ls'
-          '!**/*.scss'
-          '!**/*.haml'
+          "#{ baseDirectory }/temp/**/*",
+          "!#{ baseDirectory }/temp/components/**/*"
         ]
+        options:
+          livereload: 12000 + portOffset
 
   # Dependencies
   # ============
@@ -221,12 +213,12 @@ module.exports = (grunt) ->
   # Server
   # ------
   grunt.registerTask 'server', [
-    'livereload-start'
     'copy:static'
     'script'
     'haml'
     'sass'
+    'configureProxies:temp'
     'connect:temp'
     'proxy',
-    'regarde'
+    'watch'
   ]
