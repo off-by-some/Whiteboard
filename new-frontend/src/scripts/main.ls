@@ -1,4 +1,5 @@
 require.config do
+
   base-url: '/scripts'
   map:
     '*':
@@ -8,21 +9,13 @@ require.config do
     'components/backbone':
       backbone: '_backbone'
 
-    'backbone-mutators':
-      backbone: '_backbone'
-
-    'backbone-deep-model':
-      backbone: '_backbone'
-
     'components/underscore':
       underscore: '_underscore'
 
   paths:
     jquery: '../components/jquery/jquery'
-    _backbone: '../components/backbone/backbone'
+    _backbone: '../components/exoskeleton/exoskeleton'
     'backbone-stickit': '../components/backbone.stickit/backbone.stickit'
-    'backbone-mutators': '../components/backbone.mutators/backbone.mutators'
-    'backbone-deep-model': '../components/backbone-deep-model/distribution/deep-model'
     _underscore: '../components/lodash/dist/lodash.compat'
     'underscore-string': '../components/underscore.string/lib/underscore.string'
     haml: 'lib/haml'
@@ -33,12 +26,8 @@ require.config do
     cookie: '../components/cookie-monster/lib/cookie-monster'
     md5: '../components/spark-md5/spark-md5'
     humane: '../components/humane-js/humane'
-    dropbox: 'vendor/dropbox'
 
   shim:
-    _backbone:
-      deps: [ 'underscore', 'jquery' ]
-      exports: 'Backbone'
 
     _underscore:
       exports: '_'
@@ -46,10 +35,6 @@ require.config do
     'backbone-stickit':
       deps: [ '_backbone' ],
       exports: 'Backbone.Stickit'
-
-    'backbone-deep-model':
-      deps: [ '_backbone', '_underscore' ],
-      exports: 'Backbone.DeepModel'
 
     'underscore-string':
       exports: '_.str'
@@ -59,9 +44,6 @@ require.config do
 
     cookie:
       exports: 'monster'
-
-    dropbox:
-      exports: 'DropboxAPI'
 
 require <[ application ]>, (Application) ->
   # Instantiate the application and begin the execution cycle.
