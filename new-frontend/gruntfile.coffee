@@ -65,19 +65,6 @@ module.exports = (grunt) ->
           ]
         ]
 
-      build:
-        files: [
-          expand: true
-          filter: 'isFile'
-          dest: "#{ baseDirectory }"
-          cwd: "#{ baseDirectory }/temp"
-          src: [
-            '*',
-            'styles/**/*.css',
-            'media/**/*'
-          ]
-        ]
-
     # LiveScript
     # ----------
     livescript:
@@ -130,97 +117,12 @@ module.exports = (grunt) ->
         options:
           loadPath: path.join(path.resolve('.'), baseDirectory, 'temp')
 
-    # Dependency tracing
-    # ------------------
-    requirejs:
-      compile:
-        options:
-          out: "#{ baseDirectory }/scripts/main.js"
-          include: (_(grunt.file.expandMapping(['controllers/**/*'], ''
-            cwd: "#{ baseDirectory }/src/scripts/"
-            rename: (base, path) -> path.replace /\.coffee$|\.ls$/, ''
-          )).pluck 'dest').concat(['main'])
-          mainConfigFile: "#{ baseDirectory }/temp/components/concordus-base/lib/main.js"
-          baseUrl: "#{ baseDirectory }/temp/scripts"
-          keepBuildDir: true
-          cjsTranslate: true
-          almond: true
-          replaceRequireScript: [
-            files: ["#{ baseDirectory }/temp/index.html"],
-            module: 'main'
-          ]
-          insertRequire: ['main']
-          optimize: 'uglify2'
-
       css:
         options:
           out: "#{ baseDirectory }/styles/main.css"
           optimizeCss: 'standard.keepLines'
           cssImportIgnore: null
           cssIn: "#{ baseDirectory }/temp/styles/main.css"
-
-    # CSS Compressor
-    # --------------
-    cssc:
-      build:
-        dest: "#{ baseDirectory }/styles/main.css"
-        src: "#{ baseDirectory }/styles/main.css"
-        options:
-          sortSelectors: true
-          lineBreaks: true
-          sortDeclarations: true
-          consolidateViaDeclarations: true
-          consolidateViaSelectors: true
-          consolidateMediaQueries: true
-          compress: true
-          sort: true
-          safe: false
-
-    # HTML Compressor
-    # ---------------
-    htmlmin:
-      build:
-        options:
-          removeComments: true
-          removeCommentsFromCDATA: true
-          removeCDATASectionsFromCDATA: true
-          collapseWhitespace: true
-          collapseBooleanAttributes: true
-          removeAttributeQuotes: true
-          removeRedundantAttributes: true
-          useShortDoctype: true
-          removeEmptyAttributes: true
-          removeOptionalTags: true
-
-        src: "#{ baseDirectory }/index.html"
-        dest: "#{ baseDirectory }/index.html"
-
-    # Resource file hasher
-    # --------------------
-    hashres:
-      options:
-        fileNameFormat: '${hash}.${name}.${ext}'
-        renameFiles: true
-
-      build:
-        src: [
-          "#{ baseDirectory }/styles/main.css"
-          "#{ baseDirectory }/scripts/main.js"
-        ]
-
-        dest: "#{ baseDirectory }/index.html"
-
-    # Filesize reporter
-    # -----------------
-    bytesize:
-      all:
-        files: [
-          src: [
-            "#{ baseDirectory }/index.html",
-            "#{ baseDirectory }/styles/*main.css",
-            "#{ baseDirectory }/scripts/*main.js",
-          ]
-        ]
 
     # LiveReload
     # ----------
@@ -284,10 +186,6 @@ module.exports = (grunt) ->
           '!**/*.haml'
         ]
 
-    # Infinite Wisdom
-    # ---------------
-    compliment: grunt.file.readYAML 'compliments.yml'
-
   # Dependencies
   # ============
   cwd = process.cwd()
@@ -330,23 +228,5 @@ module.exports = (grunt) ->
     'sass'
     'connect:temp'
     'proxy',
-    'compliment',
     'regarde'
-  ]
-
-  # Build
-  # -----
-  grunt.registerTask 'build', [
-    'prepare',
-    'copy:static'
-    'script'
-    'haml'
-    'sass'
-    'requirejs:compile'
-    'copy:build'
-    'requirejs:css'
-    'cssc:build'
-    'hashres'
-    'htmlmin'
-    'bytesize'
   ]
