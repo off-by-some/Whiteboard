@@ -8,7 +8,7 @@ Brush = (function(){
     this.type = "default";
     this.isTool = false;
     this.radius = radius;
-    this.color = color;
+    this.color = Color(color);
     this.canvas = canvas;
     this.action_data = [];
   }
@@ -27,6 +27,7 @@ Brush = (function(){
       coords: []
     };
     this.actionInit(x, y);
+    this.action_data.coords.push([x, y]);
   };
   prototype.actionReset = function(){
     this.action_data = {
@@ -40,8 +41,12 @@ Brush = (function(){
     this.canvas.context.closePath();
   };
   prototype.actionMove = function(x, y){
-    this.canvas.context.lineTo(x, y);
-    this.canvas.context.stroke();
+    if (this.action_data.coords.length !== 0) {
+      this.canvas.context.lineTo(x, y);
+      this.canvas.context.stroke();
+    } else {
+      this.actionInit(x, y);
+    }
     this.action_data.coords.push([x, y]);
   };
   prototype.actionProcessCoords = function(data){
@@ -55,18 +60,20 @@ Brush = (function(){
   };
   prototype.actionRedraw = function(){
     var i$, ref$, len$, p;
-    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
-    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
-      p = ref$[i$];
-      this.canvas.context.lineTo(p[0], p[1]);
+    if (this.action_data.coords.length !== 0) {
+      this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = this.action_data.coords).length; i$ < len$; ++i$) {
+        p = ref$[i$];
+        this.canvas.context.lineTo(p[0], p[1]);
+      }
+      this.canvas.context.stroke();
     }
-    this.canvas.context.stroke();
   };
   prototype.setActionData = function(data){
     var x;
     this.action_data.brushtype = data.brushtype;
     this.action_data.radius = data.radius;
-    this.action_data.color = Color(data.color);
+    this.action_data.color = data.color;
     this.action_data.coords = (function(){
       var i$, ref$, len$, results$ = [];
       for (i$ = 0, len$ = (ref$ = data.coords).length; i$ < len$; ++i$) {
@@ -242,6 +249,7 @@ Lenny = (function(superclass){
       color: this.color.toCSS(),
       coords: []
     };
+    this.action_data.coords.push([x, y]);
   };
   prototype.actionEnd = function(){
     return;
@@ -260,10 +268,12 @@ Lenny = (function(superclass){
   };
   prototype.actionRedraw = function(){
     var i$, ref$, len$, p;
-    this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
-    for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
-      p = ref$[i$];
-      this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+    if (this.action_data.coords.length !== 0) {
+      this.actionInit(this.action_data.coords[0][0], this.action_data.coords[0][1]);
+      for (i$ = 0, len$ = (ref$ = this.action_data).length; i$ < len$; ++i$) {
+        p = ref$[i$];
+        this.canvas.context.fillText("( ͡° ͜ʖ ͡°)", p[0], p[1]);
+      }
     }
   };
   prototype.doAction = function(data){

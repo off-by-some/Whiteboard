@@ -7,7 +7,7 @@ class Brush
 		@type = "default"
 		@isTool = false
 		@radius = radius
-		@color = color
+		@color = Color color
 		@canvas = canvas
 		@action_data = []
 	
@@ -33,6 +33,8 @@ class Brush
 		# Clear action data
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 		@actionInit x, y
+		# console.log @action_data
+		@action_data.coords.push [x, y]
 	
 	# Reset action data
 	actionReset: !->
@@ -45,9 +47,11 @@ class Brush
 	
 	# Process a single new coordinate
 	actionMove: (x, y) !->
-		
-		@canvas.context.line-to x, y
-		@canvas.context.stroke!
+		unless @action_data.coords.length == 0
+			@canvas.context.line-to x, y
+			@canvas.context.stroke!
+		else
+			@actionInit x, y
 		@action_data.coords.push [x, y]
 	
 	# Process a set of new coordinates
@@ -59,17 +63,20 @@ class Brush
 	
 	# Redraw all coordinates so far
 	actionRedraw: !->
-		@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-		for p in @action_data
-			@canvas.context.line-to p[0], p[1]
-		@canvas.context.stroke!
+		# console.log @action_data
+		unless @action_data.coords.length == 0
+			@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
+			for p in @action_data.coords
+				@canvas.context.line-to p[0], p[1]
+			@canvas.context.stroke!
 	
 	# Sets the action's data
 	setActionData: (data) !->
 		@action_data.brushtype = data.brushtype
 		@action_data.radius = data.radius
-		@action_data.color = Color data.color
+		@action_data.color = data.color
 		@action_data.coords = [x for x in data.coords]
+		# console.log @action_data
 	
 	# Gets the action's data; useful for action history
 	getActionData: (data) !->
@@ -200,11 +207,12 @@ class Lenny extends Brush
 		@canvas.context.fillStyle = @color.toCSS!
 		@canvas.context.font = "bold " + @radius + "px arial"
 		@canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
-		# @action_data.coords.push [x, y] <---- This will cause problems when actionStart is called in doAction
 		
 	actionStart: (x, y) !->
 		@actionInit x, y
 		@action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
+		@action_data.coords.push [x, y]
+
 	actionEnd: !->
 		return
 	
@@ -219,9 +227,10 @@ class Lenny extends Brush
 			@action_data.coords.push p[0], p[1]
 	
 	actionRedraw: !->
-		@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-		for p in @action_data
-			@canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
+		unless @action_data.coords.length == 0
+			@actionInit @action_data.coords[0][0], @action_data.coords[0][1]
+			for p in @action_data
+				@canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
 		
 	doAction: (data) !->
 		unless data.coords.length == 0

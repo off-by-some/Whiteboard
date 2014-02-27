@@ -40,12 +40,13 @@ canvas_script = function(){
       i = i$;
       canvas.id += pool.charAt(Math.floor(Math.random() * pool.length));
     }
+    document.getElementById('userlist').innerHTML = "<b>Your ID:</b><br />" + canvas.id + "<br /><br /><b>Other users:</b><hr />";
     canvas.brushRadius = brushRadius;
     canvas.history = [];
     canvas.actionCount = 0;
     canvas.users = {};
     canvas.brush = new Brush(brushRadius, Color(fillColor), canvas);
-    canvas.connection = new WebSocket('ws://localhost:9002/');
+    canvas.connection = new WebSocket('ws://localhost:9002/broadcast');
     canvas.connection.onopen = function(){
       canvas.connection.send(JSON.stringify({
         id: canvas.id,
@@ -56,13 +57,22 @@ canvas_script = function(){
     canvas.connection.onerror = function(error){};
     canvas.connection.onmessage = function(e){
       var message, cur_user;
-      console.log(e.data);
       message = JSON.parse(e.data);
-      if (message.id) {
+      if (message.id && message.id !== canvas.id) {
         switch (message.action) {
         case 'join':
           canvas.users[message.id] = new User(message.id);
           canvas.users[message.id].brush = new Brush(10, '#000000', canvas);
+          canvas.connection.send(JSON.stringify({
+            id: canvas.id,
+            action: 'been_here_fgt'
+          }));
+          document.getElementById('userlist').innerHTML += message.id + "<hr />";
+          break;
+        case 'been_here_fgt':
+          canvas.users[message.id] = new User(message.id);
+          canvas.users[message.id].brush = new Brush(10, '#000000', canvas);
+          document.getElementById('userlist').innerHTML += message.id + "<hr />";
           break;
         case 'action-start':
           cur_user = canvas.users[message.id];
@@ -105,7 +115,7 @@ canvas_script = function(){
         temp_user.brush.actionMove(x, y);
         temp_user.brush.actionEnd();
         if (canvas.isDrawing) {
-          canvas.brush.redraw();
+          canvas.brush.actionRedraw();
         }
       }
     };
@@ -182,18 +192,13 @@ canvas_script = function(){
       }
     };
     canvas.node.onmousedown = function(e){
-      switch (e.button) {
-        // "Only care about the left click"
-        case 0:
-          canvas.isDrawing = true;
-          canvas.brush.actionStart(e.clientX, e.clientY);
-          canvas.connection.send(JSON.stringify({
-            id: canvas.id,
-            action: 'action-start',
-            data: canvas.brush.getActionData()
-          }));
-          break;
-      }
+      canvas.isDrawing = true;
+      canvas.brush.actionStart(e.clientX, e.clientY);
+      canvas.connection.send(JSON.stringify({
+        id: canvas.id,
+        action: 'action-start',
+        data: canvas.brush.getActionData()
+      }));
     };
     canvas.node.onmouseup = function(e){
       var tempframe;
@@ -238,10 +243,19 @@ canvas_script = function(){
       }
     };
     window.onkeyup = function(e){
+      var x;
       switch (e.keyCode) {
       case 90:
         if (canvas.ctrlActivated) {
           canvas.undo('self');
+        }
+        break;
+      case 48:
+        if (canvas.ctrlActivated) {
+          x = canvas.history[canvas.history.length - 1];
+          x.frame = canvas.context.getImageData(0, 0, canvas.node.width, canvas.node.height);
+          canvas.history = [];
+          canvas.history.push(x);
         }
       }
       if (e.ctrlKey) {
