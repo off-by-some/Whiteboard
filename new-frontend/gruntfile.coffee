@@ -137,7 +137,7 @@ module.exports = (grunt) ->
     # ---------
     connect:
       options:
-        port: 4501 + portOffset
+        port: 3501 + portOffset
         hostname: hostname
         middleware: (connect, options) -> [
           require('grunt-connect-proxy/lib/utils').proxyRequest
@@ -150,14 +150,6 @@ module.exports = (grunt) ->
         proxies: [{context: '/api', host: hostname, port: 8000}]
         options:
           base: "#{ baseDirectory }/temp"
-
-    # Proxy
-    # -----
-    proxy:
-      serve:
-        options:
-          port: 3501 + portOffset
-          router: router
 
     # Watch
     # -----
@@ -218,12 +210,11 @@ module.exports = (grunt) ->
   # ------
   grunt.registerTask 'server', [
     'copy:static'
+    'symlink:bower'
     'script'
     'haml'
     'sass'
     'configureProxies:temp'
     'connect:temp'
-    'symlink:bower'
-    'proxy'
     'watch'
   ]
