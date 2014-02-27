@@ -40,7 +40,7 @@ canvas_script = function(){
       i = i$;
       canvas.id += pool.charAt(Math.floor(Math.random() * pool.length));
     }
-    document.getElementById('userlist').innerHTML = "Your ID: " + canvas.id + "<br /><hr />";
+    document.getElementById('userlist').innerHTML = "<b>Your ID:</b><br />" + canvas.id + "<br /><br /><b>Other users:</b><hr />";
     canvas.brushRadius = brushRadius;
     canvas.history = [];
     canvas.actionCount = 0;

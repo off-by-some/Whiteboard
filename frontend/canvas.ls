@@ -43,7 +43,7 @@ canvas_script = ->
 		for i from 0 to 20 by 1
 			canvas.id += pool.charAt (Math.floor ((Math.random!) * pool.length))
 
-	        document.getElementById('userlist').innerHTML = "<b>Your ID:</b><br />" + canvas.id + "<br /><br /><b>Other users:</b><hr />";
+		(document.getElementById 'userlist').innerHTML = "<b>Your ID:</b><br />" + canvas.id + "<br /><br /><b>Other users:</b><hr />"
 
 		# Which brush stroke radius to start out at
 		canvas.brushRadius = brushRadius
