@@ -15,10 +15,7 @@ npm install && bower install
 ```
 
 
-Run that bad boy.
-`grunt`
+Run that bad boy: `grunt`
 
 
-Now go to your browser.
-You can find your port in the terminal after grunt has finished.
- - localhost:3501
+Now go to your browser: [http://localhost:3501](http://localhost:3501)
