@@ -38,11 +38,6 @@ module.exports = (grunt) ->
     # -------
     clean:
       all: [
-        "#{ baseDirectory }/index.html",
-        "#{ baseDirectory }/styles/**/*",
-        "#{ baseDirectory }/scripts/**/*",
-        "#{ baseDirectory }/robots.txt",
-        "#{ baseDirectory }/settings.json",
         "#{ baseDirectory }/temp/**/*"
         "!#{ baseDirectory }/temp/components"
         "!#{ baseDirectory }/temp/components/**/*"
@@ -65,18 +60,14 @@ module.exports = (grunt) ->
           ]
         ]
 
-      build:
-        files: [
-          expand: true
-          filter: 'isFile'
-          dest: "#{ baseDirectory }"
-          cwd: "#{ baseDirectory }/temp"
-          src: [
-            '*',
-            'styles/**/*.css',
-            'media/**/*'
-          ]
-        ]
+    # Symlink
+    # -------
+    # Ensure that the temporary directories can access the bower components.
+    symlink:
+      bower:
+        overwrite: true
+        src: "#{ baseDirectory }/bower_components"
+        dest: "#{ baseDirectory }/temp/components"
 
     # LiveScript
     # ----------
@@ -130,97 +121,12 @@ module.exports = (grunt) ->
         options:
           loadPath: path.join(path.resolve('.'), baseDirectory, 'temp')
 
-    # Dependency tracing
-    # ------------------
-    requirejs:
-      compile:
-        options:
-          out: "#{ baseDirectory }/scripts/main.js"
-          include: (_(grunt.file.expandMapping(['controllers/**/*'], ''
-            cwd: "#{ baseDirectory }/src/scripts/"
-            rename: (base, path) -> path.replace /\.coffee$|\.ls$/, ''
-          )).pluck 'dest').concat(['main'])
-          mainConfigFile: "#{ baseDirectory }/temp/components/concordus-base/lib/main.js"
-          baseUrl: "#{ baseDirectory }/temp/scripts"
-          keepBuildDir: true
-          cjsTranslate: true
-          almond: true
-          replaceRequireScript: [
-            files: ["#{ baseDirectory }/temp/index.html"],
-            module: 'main'
-          ]
-          insertRequire: ['main']
-          optimize: 'uglify2'
-
       css:
         options:
           out: "#{ baseDirectory }/styles/main.css"
           optimizeCss: 'standard.keepLines'
           cssImportIgnore: null
           cssIn: "#{ baseDirectory }/temp/styles/main.css"
-
-    # CSS Compressor
-    # --------------
-    cssc:
-      build:
-        dest: "#{ baseDirectory }/styles/main.css"
-        src: "#{ baseDirectory }/styles/main.css"
-        options:
-          sortSelectors: true
-          lineBreaks: true
-          sortDeclarations: true
-          consolidateViaDeclarations: true
-          consolidateViaSelectors: true
-          consolidateMediaQueries: true
-          compress: true
-          sort: true
-          safe: false
-
-    # HTML Compressor
-    # ---------------
-    htmlmin:
-      build:
-        options:
-          removeComments: true
-          removeCommentsFromCDATA: true
-          removeCDATASectionsFromCDATA: true
-          collapseWhitespace: true
-          collapseBooleanAttributes: true
-          removeAttributeQuotes: true
-          removeRedundantAttributes: true
-          useShortDoctype: true
-          removeEmptyAttributes: true
-          removeOptionalTags: true
-
-        src: "#{ baseDirectory }/index.html"
-        dest: "#{ baseDirectory }/index.html"
-
-    # Resource file hasher
-    # --------------------
-    hashres:
-      options:
-        fileNameFormat: '${hash}.${name}.${ext}'
-        renameFiles: true
-
-      build:
-        src: [
-          "#{ baseDirectory }/styles/main.css"
-          "#{ baseDirectory }/scripts/main.js"
-        ]
-
-        dest: "#{ baseDirectory }/index.html"
-
-    # Filesize reporter
-    # -----------------
-    bytesize:
-      all:
-        files: [
-          src: [
-            "#{ baseDirectory }/index.html",
-            "#{ baseDirectory }/styles/*main.css",
-            "#{ baseDirectory }/scripts/*main.js",
-          ]
-        ]
 
     # LiveReload
     # ----------
@@ -231,62 +137,42 @@ module.exports = (grunt) ->
     # ---------
     connect:
       options:
-        port: 4501 + portOffset
+        port: 3501 + portOffset
         hostname: hostname
         middleware: (connect, options) -> [
+          require('grunt-connect-proxy/lib/utils').proxyRequest
           require('connect-url-rewrite') ['^[^.]*$ /']
-          require('grunt-contrib-livereload/lib/utils').livereloadSnippet
+          require('connect-livereload') {port: 12000 + portOffset}
           connect.static options.base
         ]
 
-      build:
-        options:
-          keepalive: true
-          base: "#{ baseDirectory }"
-
       temp:
+        proxies: [{context: '/api', host: hostname, port: 8000}]
         options:
           base: "#{ baseDirectory }/temp"
 
-    # Proxy
+    # Watch
     # -----
-    proxy:
-      serve:
-        options:
-          port: 3501 + portOffset
-          router: router
+    watch:
+      sass:
+        files: ["#{ baseDirectory }/src/**/*.scss"]
+        tasks: ["sass:compile"]
 
-    # Watcher
-    # -------
-    regarde:
       livescript:
-        files: "#{ baseDirectory }/src/**/*.ls"
-        tasks: ['script', 'livereload']
+        files: ["#{ baseDirectory }/src/**/*.ls"]
+        tasks: ["livescript"]
 
       haml:
-        files: "#{ baseDirectory }/src/templates/**/*.haml"
-        tasks: ['haml:compile', 'livereload']
+        files: ["#{ baseDirectory }/src/**/*.haml"]
+        tasks: ["haml"]
 
-      index:
-        files: "#{ baseDirectory }/src/index.haml"
-        tasks: ['haml:index', 'livereload']
-
-      sass:
-        files: "#{ baseDirectory }/src/styles/**/*.scss"
-        tasks: ['sass:compile', 'livereload']
-
-      static:
-        tasks: ['copy:static', 'livereload']
+      livereload:
         files: [
-          "#{ baseDirectory }/src/**/*.js"
-          '!**/*.ls'
-          '!**/*.scss'
-          '!**/*.haml'
+          "#{ baseDirectory }/temp/**/*",
+          "!#{ baseDirectory }/temp/components/**/*"
         ]
-
-    # Infinite Wisdom
-    # ---------------
-    compliment: grunt.file.readYAML 'compliments.yml'
+        options:
+          livereload: 12000 + portOffset
 
   # Dependencies
   # ============
@@ -323,30 +209,12 @@ module.exports = (grunt) ->
   # Server
   # ------
   grunt.registerTask 'server', [
-    'livereload-start'
     'copy:static'
+    'symlink:bower'
     'script'
     'haml'
     'sass'
+    'configureProxies:temp'
     'connect:temp'
-    'proxy',
-    'compliment',
-    'regarde'
-  ]
-
-  # Build
-  # -----
-  grunt.registerTask 'build', [
-    'prepare',
-    'copy:static'
-    'script'
-    'haml'
-    'sass'
-    'requirejs:compile'
-    'copy:build'
-    'requirejs:css'
-    'cssc:build'
-    'hashres'
-    'htmlmin'
-    'bytesize'
+    'watch'
   ]
