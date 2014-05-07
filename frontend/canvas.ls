@@ -61,13 +61,13 @@ canvas_script = ->
 		canvas.users = {}
 		
 		# Initialize this user's brush
-		canvas.brush = new Brush brushRadius, (Color fillColor), canvas
+		canvas.brush = new Brush brushRadius, (Color fillColor), canvas 
 		
 		#testing some websocket stuff
 		canvas.connection = new WebSocket 'ws://localhost:9002/broadcast'
 		canvas.connection.onopen = !->
 
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'join'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'join'}
 			return
 		
 		# IT WORKS!
@@ -77,7 +77,7 @@ canvas_script = ->
 			# console.log 'websocket dun goofed: ' + error
 		
 		# Message processing
-		canvas.connection.onmessage = (e) !->
+		messageFunc = (e) !->
 
 			# message format:
 			# {id:"aeuaouaeid_here", action:"action_name", data:{whatever_you_want_in_here_i_guess}}
@@ -86,16 +86,6 @@ canvas_script = ->
 			if message.id and message.id is not canvas.id
 				# console.log "my name is " + message.id + " not " canvas.id 
 				switch message.action
-				case 'join'
-					canvas.users[message.id] = new User message.id
-					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
-					canvas.connection.send JSON.stringify {id:canvas.id, action:'been_here_fgt'}
-					(document.getElementById 'userlist').innerHTML += message.id + "<hr />"
-				case 'been_here_fgt'
-					canvas.users[message.id] = new User message.id
-					canvas.users[message.id].brush = new Brush 10, '#000000', canvas
-					(document.getElementById 'userlist').innerHTML += message.id + "<hr />"
-
 				case 'action-start'
 					cur_user = canvas.users[message.id]
 					cur_user.brush.actionReset!
@@ -116,6 +106,17 @@ canvas_script = ->
 					cur_user.brush = getBrush message.data, cur_user.action.radius, cur_user.action.fillColor, canvas
 			else
 				# console.log "server says: " + e.data
+		
+		joinFunc = (user_id) !->
+			canvas.users[user_id] = new User user_id
+			canvas.users[user_id].brush = new Brush 10, '#000000', canvas
+			(document.getElementById 'userlist').innerHTML += user_id + "<hr />"
+		
+		partFunc = (user_id) !->
+			return
+		
+		#testing some webrtc stuff
+		canvas.rtcmanager = new WebRTCManager canvas.id, joinFunc, partFunc, messageFunc
 
 		# This is for when we need to render what other users have drawn
 		canvas.userdraw = (user_id, x, y) !->
@@ -148,7 +149,7 @@ canvas_script = ->
 			# console.log canvas.commands
 
 			# Send the coords to any other users
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
 
 		# Gets the index of the closest useable frame less than specifed index
 		canvas.getLastFrameIndex = (start_index) !->
@@ -182,7 +183,7 @@ canvas_script = ->
 		canvas.undo = (user_id) !->
 			# If it's this user, then send an undo action to other users
 			if user_id == 'self'
-				canvas.connection.send JSON.stringify {id:canvas.id, action:'undo'}
+				canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'undo'}
 			if canvas.isDrawing
 				canvas.brush.actionEnd!
 			var actionIndex
@@ -203,7 +204,7 @@ canvas_script = ->
 			canvas.brush.actionStart e.clientX, e.clientY
 			
 			#send the action start
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
 
 
 		canvas.node.onmouseup = (e) !->
@@ -229,7 +230,7 @@ canvas_script = ->
 			canvas.redraw (canvas.history.length - 1), false
 			
 			#send the action end
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'action-end'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-end'}
 		
 		# This handles color changes, it is a piss-poor substitute for an actual MVC architecture
 		canvas.doColorChange = (color) !->
@@ -240,7 +241,7 @@ canvas_script = ->
 			(document.getElementById 'color-value').value = r + "," + g + "," + b + "," + color.getAlpha!
 			(document.getElementById 'alphaslider').value = "" + color.getAlpha!
 			(document.getElementById 'brightnessslider').value = "" + color.getLightness!
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'color-change', data:(color.toCSS!)}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'color-change', data:(color.toCSS!)}
 
 		# We really need to do more key combos...
 		window.onkeydown = (e) !->
@@ -278,7 +279,7 @@ canvas_script = ->
 		(document.getElementById 'radius-value').onkeypress = (e) !->
 			
 			canvas.brush.radius = this.value
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'radius-change', data:this.value}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'radius-change', data:this.value}
 
 		# Downloads ftw!  I really do need to code up that svg exporter though...
 		(document.getElementById 'download').onclick = (e) !->
@@ -289,43 +290,43 @@ canvas_script = ->
 
 			canvas.brush = new ColorSamplerBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sampler'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'sampler'}
 
 		(document.getElementById 'pencil-brush').onclick = (e) !->
 
 			canvas.brush = new Brush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'default'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'default'}
 
 		(document.getElementById 'wireframe-brush').onclick = (e) !->
 
 			canvas.brush = new WireframeBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
 		
 		(document.getElementById 'lenny-brush').onclick = (e) !->
 
 			canvas.brush = new Lenny canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
 		
 		(document.getElementById 'eraser-brush').onclick = (e) !->
 
 			canvas.brush = new EraserBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
 		
 		(document.getElementById 'copypaste-brush').onclick = (e) !->
 
 			canvas.brush = new CopyPasteBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
 		
 		(document.getElementById 'sketch-brush').onclick = (e) !->
 
 			canvas.brush = new SketchBrush canvas.brush.radius, canvas.brush.color, canvas
 			canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-			canvas.connection.send JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
+			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
 		
 		# Be absoulely certain we get the right coordinates	
 		getCoordinates = (e, element) !->

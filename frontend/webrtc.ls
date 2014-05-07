@@ -1,7 +1,7 @@
 # These help to reduce compatibility issues across browsers
-PeerConnection = window.RTCPeerConnection | window.mozRTCPeerConnection | window.webkitRTCPeerConnection
-IceCandidate = window.mozRTCIceCandidate | window.RTCIceCandidate
-SessionDescription = window.mozRTCSessionDescription | window.RTCSessionDescription
+PeerConnection = window.RTCPeerConnection or window.mozRTCPeerConnection or window.webkitRTCPeerConnection
+IceCandidate = window.mozRTCIceCandidate or window.RTCIceCandidate
+SessionDescription = window.mozRTCSessionDescription or window.RTCSessionDescription
 
 # A list of STUN and TURN servers to aid in establishing p2p connections
 # If you aren't worried about huge sdp messages, you should
@@ -29,7 +29,7 @@ getRandomString = (n) !->
         ret += pool.charAt (Math.floor ((Math.random!) * pool.length))
     return ret
 
-Class WebRTCManager
+class WebRTCManager
     # Constructor
     (our_id, websocket_url, usercallback, userclosecallback, msgcallback) ->
         @id = our_id
@@ -55,17 +55,17 @@ Class WebRTCManager
         
         if parsed_msg.id is not @id
             switch parsed_msg.action
-                case 'been_here_fgt'
-                    @new_user_callback parsed_msg.id
-                    @initAndOffer user_id
-                case 'join'
-                    @signaling_channel.send JSON.stringify {id:@id, action:'been_here_fgt'}
-                case 'offer'
-                    if parsed_msg.data.dest == @id
-                        @processOffer parsed_msg.id, parsed_msg.data.sdp
-                case 'answer'
-					if parsed_msg.data.dest == @id
-						@processAnswer parsed_msg.id, parsed_msg.data.sdp
+            case 'been_here_fgt'
+                @new_user_callback parsed_msg.id
+                @initAndOffer user_id
+            case 'join'
+                @signaling_channel.send JSON.stringify {id:@id, action:'been_here_fgt'}
+            case 'offer'
+                if parsed_msg.data.dest == @id
+                    @processOffer parsed_msg.id, parsed_msg.data.sdp
+            case 'answer'
+                if parsed_msg.data.dest == @id
+                    @processAnswer parsed_msg.id, parsed_msg.data.sdp
     
     initAndOffer: (user_id) !->
         # Set up the peer connection
@@ -128,27 +128,24 @@ Class WebRTCManager
                             )
                             , errorHandler
                     )
-					, errorHandler
-				)
-            , errorHandler
-	
-	processAnswer: (user_id, sdp) !->
-		# Find the peerconnection we sent the offer for
-		tempconnection = @peer_connections[user_id].peerconnection
-		
-		# Set that connection's remote description to our offer, shit should connect automatically after this is done
-		tempconnection.setRemoteDescription new SessionDescription sdp
+                    , errorHandler
+                )
+                , errorHandler
     
+    processAnswer: (user_id, sdp) !->
+        # Find the peerconnection we sent the offer for
+        tempconnection = @peer_connections[user_id].peerconnection
+        
+        # Set that connection's remote description to our offer, shit should connect automatically after this is done
+        tempconnection.setRemoteDescription new SessionDescription sdp
+
     processMessage: (msg) !->
         parsed_msg = JSON.parse msg
-        
-        switch parsed_msg.action
-            default:
-                @message_callback parsed_msg
-    
+        @message_callback parsed_msg
+
     send: (user_id, msg) !->
-		@peer_connections[user_id].channel.send msg
-	
-	sendAll: (msg) !->
-		for user in @peer_connections
-			@peer_connections[user].send msg
+        @peer_connections[user_id].channel.send msg
+
+    sendAll: (msg) !->
+        for user in @peer_connections
+            @peer_connections[user].send msg
