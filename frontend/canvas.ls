@@ -103,7 +103,7 @@ canvas_script = ->
 			return
 		
 		#testing some webrtc stuff
-		canvas.rtcmanager = new WebRTCManager canvas.id, joinFunc, partFunc, messageFunc
+		canvas.rtcmanager = new WebRTCManager canvas.id, 'ws://localhost:9002/broadcast', joinFunc, partFunc, messageFunc
 
 		# This is for when we need to render what other users have drawn
 		canvas.userdraw = (user_id, x, y) !->
