@@ -44,8 +44,8 @@ class WebRTCManager
         @signaling_channel.onopen = !->
             @signaling_channel.send JSON.stringify {id:@id, action:'join'}
             return
-        @signaling_channel.onerror = (err) -> @error_handler err
-        @signaling_channel.onmessage = (msg) -> @processSignalingMessage msg
+        @signaling_channel.onerror = (err) !-> @error_handler err
+        @signaling_channel.onmessage = (msg) !-> @processSignalingMessage msg
         
     errorHandler: (err) !->
         console.log err
@@ -88,9 +88,9 @@ class WebRTCManager
         # Create a data channel for our peer connection
         @peer_connections[user_id].channel = temp_pc.createDataChannel(channelname, {});
         
-        @peer_connections[user_id].channel.onmessage = (e) -> processMessage e
+        @peer_connections[user_id].channel.onmessage = (e) !-> processMessage e
         
-        @peer_connections[user_id].channel.onclose = (e) ->
+        @peer_connections[user_id].channel.onclose = (e) !->
             delete @peer_connections[user_id]
             @user_close_callback user_id
         
@@ -107,9 +107,9 @@ class WebRTCManager
         # We can't just create a data channel if we didn't make an offer, so we have to wait
         # for it to be created
         tempconnection.ondatachannel = (e) !->
-            peerconnections[user_id].channel.onmessage = (e) -> processMessage e
+            peerconnections[user_id].channel.onmessage = (e) !-> processMessage e
         
-            @peer_connections[user_id].channel.onclose = (e) ->
+            @peer_connections[user_id].channel.onclose = (e) !->
                 delete @peer_connections[user_id]
                 @user_close_callback user_id
             
