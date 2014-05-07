@@ -63,19 +63,6 @@ canvas_script = ->
 		# Initialize this user's brush
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas 
 		
-		#testing some websocket stuff
-		canvas.connection = new WebSocket 'ws://localhost:9002/broadcast'
-		canvas.connection.onopen = !->
-
-			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'join'}
-			return
-		
-		# IT WORKS!
-
-		canvas.connection.onerror = (error) !->
-
-			# console.log 'websocket dun goofed: ' + error
-		
 		# Message processing
 		messageFunc = (e) !->
 
