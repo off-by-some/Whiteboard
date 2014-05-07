@@ -1,4 +1,4 @@
-require(['menu', 'utility/color', 'brushes/brushes', 'canvas'],
+require(['menu', 'utility/color', 'brushes/brushes', 'webrtc', 'canvas'],
 	function(menu, color, brushes, canvas)
 	{
 		canvas_init = canvas_script();
