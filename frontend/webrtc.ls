@@ -149,4 +149,7 @@ class WebRTCManager
 
     sendAll: (msg) !->
         for user of @peer_connections
-            @peer_connections[user].channel.send msg
+            unless @peer_connections[user].channel == void
+                @peer_connections[user].channel.send msg
+            else
+                @errorHandler("User \"" + user + "\" is not connected");
