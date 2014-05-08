@@ -57,7 +57,7 @@ class WebRTCManager
             switch parsed_msg.action
             case 'been_here_fgt'
                 @new_user_callback parsed_msg.id
-                @initAndOffer user_id
+                @initAndOffer parsed.msg_id
             case 'join'
                 @signaling_channel.send JSON.stringify {id:@id, action:'been_here_fgt'}
             case 'offer'
