@@ -64,12 +64,12 @@ canvas_script = ->
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas 
 		
 		# Message processing
-		messageFunc = (e) !->
+		messageFunc = (data) !->
 
 			# message format:
 			# {id:"aeuaouaeid_here", action:"action_name", data:{whatever_you_want_in_here_i_guess}}
 			# console.log(e.data)
-			message = JSON.parse(e.data)
+			message = data
 			if message.id and message.id is not canvas.id
 				# console.log "my name is " + message.id + " not " canvas.id 
 				switch message.action
@@ -103,7 +103,7 @@ canvas_script = ->
 			return
 		
 		#testing some webrtc stuff
-		canvas.rtcmanager = new WebRTCManager canvas.id, 'ws://localhost:9001/broadcast', joinFunc, partFunc, messageFunc
+		canvas.rtcmanager = new WebRTCManager canvas.id, 'ws://localhost:9002/broadcast', joinFunc, partFunc, messageFunc
 
 		# This is for when we need to render what other users have drawn
 		canvas.userdraw = (user_id, x, y) !->

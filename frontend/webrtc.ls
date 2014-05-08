@@ -57,8 +57,9 @@ class WebRTCManager
             switch parsed_msg.action
             case 'been_here_fgt'
                 @new_user_callback parsed_msg.id
-                @initAndOffer parsed_msg.msg_id
+                @initAndOffer parsed_msg.id
             case 'join'
+                @new_user_callback parsed_msg.id
                 @signaling_channel.send JSON.stringify {id:@id, action:'been_here_fgt'}
             case 'offer'
                 if parsed_msg.data.dest == @id
@@ -88,9 +89,9 @@ class WebRTCManager
         # Create a data channel for our peer connection
         @peer_connections[user_id].channel = temp_pc.createDataChannel(channelname, {});
         
-        @peer_connections[user_id].channel.onmessage = (e) !-> processMessage e
+        @peer_connections[user_id].channel.onmessage = (e) !~> @processMessage e
         
-        @peer_connections[user_id].channel.onclose = (e) !->
+        @peer_connections[user_id].channel.onclose = (e) !~>
             delete @peer_connections[user_id]
             @user_close_callback user_id
         
@@ -107,13 +108,13 @@ class WebRTCManager
         # We can't just create a data channel if we didn't make an offer, so we have to wait
         # for it to be created
         tempconnection.ondatachannel = (e) !~>
-            peerconnections[user_id].channel.onmessage = (e) !~> @processMessage e
+            @peer_connections[user_id].channel = e.channel
+            
+            @peer_connections[user_id].channel.onmessage = (e) !~> @processMessage e
         
             @peer_connections[user_id].channel.onclose = (e) !~>
                 delete @peer_connections[user_id]
                 @user_close_callback user_id
-            
-            @peer_connections[user_id].channel = e.channel;
 
         # Now set our remote description to that offer sdp
         tempconnection.setRemoteDescription (new SessionDescription sdp),
@@ -126,26 +127,26 @@ class WebRTCManager
                                 # Create dat sexy json encapsulation and send it
                                 @signaling_channel.send JSON.stringify {id:@id, action:"answer", data:{dest:user_id, sdp:answer}}
                             )
-                            , errorHandler
+                            , @errorHandler
                     )
-                    , errorHandler
+                    , @errorHandler
                 )
-                , errorHandler
+                , @errorHandler
     
     processAnswer: (user_id, sdp) !->
         # Find the peerconnection we sent the offer for
-        tempconnection = @peer_connections[user_id].peerconnection
+        tempconnection = @peer_connections[user_id].peer_connection
         
         # Set that connection's remote description to our offer, shit should connect automatically after this is done
         tempconnection.setRemoteDescription new SessionDescription sdp
 
     processMessage: (msg) !->
-        parsed_msg = JSON.parse msg
+        parsed_msg = JSON.parse msg.data
         @message_callback parsed_msg
 
     send: (user_id, msg) !->
         @peer_connections[user_id].channel.send msg
 
     sendAll: (msg) !->
-        for user in @peer_connections
-            @peer_connections[user].send msg
+        for user of @peer_connections
+            @peer_connections[user].channel.send msg
