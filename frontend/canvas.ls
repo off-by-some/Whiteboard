@@ -129,6 +129,8 @@ canvas_script = ->
 
 			x = e.clientX #- this.offsetLeft
 			y = e.clientY #- this.offsetTop
+
+			# console.log x, y
 			
 			# Process new coordinate data, draw accordingly
 			canvas.brush.actionMove x, y
@@ -255,6 +257,13 @@ canvas_script = ->
 			# end key press
 			if e.ctrlKey
 				canvas.ctrlActivated = false
+
+		window.onresize= (e) !->
+			# console.log \ypeueoaueoa
+			canvas.width = window.innerWidth
+			canvas.height = window.innerHeight
+			canvas.node.width = window.innerWidth
+			canvas.node.height = window.innerHeight
 		
 		# This is called when a user types in a color value
 		# Could be better, it really should happen either on blur or when enter is pressed
