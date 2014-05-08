@@ -57,7 +57,7 @@ class WebRTCManager
             switch parsed_msg.action
             case 'been_here_fgt'
                 @new_user_callback parsed_msg.id
-                @initAndOffer parsed.msg_id
+                @initAndOffer parsed_msg.msg_id
             case 'join'
                 @signaling_channel.send JSON.stringify {id:@id, action:'been_here_fgt'}
             case 'offer'
@@ -95,7 +95,7 @@ class WebRTCManager
             @user_close_callback user_id
         
         # This actually creates the offer
-        temp_pc.createOffer ((offer) !-> (temp_pc.setLocalDescription offer)), errorHandler
+        temp_pc.createOffer ((offer) !~> (temp_pc.setLocalDescription offer)), @errorHandler
     
     processOffer: (user_id, sdp) !->
         # We got an offer, so create a new channel to deal with this new connection
