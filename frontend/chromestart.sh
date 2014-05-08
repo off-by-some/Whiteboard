@@ -1,1 +1,0 @@
-chromium-browser home.html --allow-file-access-from-files
