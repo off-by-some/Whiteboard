@@ -44,14 +44,14 @@ class WebRTCManager
         @signaling_channel.onopen = !~>
             @signaling_channel.send JSON.stringify {id:@id, action:'join'}
             return
-        @signaling_channel.onerror = (err) !~> @error_handler err
+        @signaling_channel.onerror = (err) !~> @errorHandler err
         @signaling_channel.onmessage = (msg) !~> @processSignalingMessage msg
         
     errorHandler: (err) !->
         console.log err
     
-    processSignalingMessage: (msg) !->
-        parsed_msg = JSON.parse msg
+    processSignalingMessage: (e) !->
+        parsed_msg = JSON.parse e.data
         
         if parsed_msg.id is not @id
             switch parsed_msg.action
@@ -76,7 +76,7 @@ class WebRTCManager
         channelname = getRandomString 20
         
         # Now wait until we've generated some ice candidates
-        temp_pc.onicecandidate = (e) !->
+        temp_pc.onicecandidate = (e) !~>
             # When e.candidate is null, we're done generating candidates, so if
             # we grab the sdp offer now, it'll be nice and full of candidates
             # If you don't do this, chrome will be an asshole and just not put any
@@ -117,12 +117,12 @@ class WebRTCManager
 
         # Now set our remote description to that offer sdp
         tempconnection.setRemoteDescription (new SessionDescription sdp),
-                (!->
+                (!~>
                     # Also create an answer, we're not some sort of deaf-mute
-                    tempconnection.createAnswer ((answer) !->
+                    tempconnection.createAnswer ((answer) !~>
                         # Our local description is just the answer
                         tempconnection.setLocalDescription (new SessionDescription answer),
-                            (!->
+                            (!~>
                                 # Create dat sexy json encapsulation and send it
                                 @signaling_channel.send JSON.stringify {id:@id, action:"answer", data:{dest:user_id, sdp:answer}}
                             )
