@@ -23,7 +23,7 @@ class Brush
         @canvas.context.beginPath!
         
         # Set the line width from the brush's current radius
-        @canvas.context.line-width = @radius
+        @canvas.context.line-width = @radius * @canvas.transformation.globalScale[0]
 
         # get rid of those nasty turns
         @canvas.context.line-join = @canvas.context.line-cap = 'round'
@@ -224,6 +224,82 @@ class PanTool extends Brush
         delta_x = x - @lastPoint[0]
         delta_y = -(y - @lastPoint[1])
         @canvas.transformation.translate delta_x, delta_y
+        @lastPoint = [x, y]
+        @canvas.redraw (0), false
+    
+    actionProcessCoords: (data) ->
+        return
+    
+    actionRedraw: !->
+        return
+        
+    doAction: (data) !->
+        return
+
+class ScaleTool extends Brush
+    (radius, color, canvas) ->
+        
+        super ...
+        @type = "scale"
+        @isTool = true
+        @firstX = 0
+        @prevX = 0
+    
+    actionInit: (x, y) !->
+        @firstX = x
+        @prevX = x
+        
+    actionStart: (x, y) !->
+        @firstX = x
+        @prevX = x
+        @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
+
+    actionEnd: !->
+        return
+        
+    actionMove: (x, y) !->
+        delta_x = x - @prevX
+        scale = 1.0 + (delta_x / 500.0)
+        @prevX = x
+        @canvas.transformation.scale scale, scale
+        @lastPoint = [x, y]
+        @canvas.redraw (0), false
+    
+    actionProcessCoords: (data) ->
+        return
+    
+    actionRedraw: !->
+        return
+        
+    doAction: (data) !->
+        return
+
+class RotateTool extends Brush
+    (radius, color, canvas) ->
+        
+        super ...
+        @type = "rotate"
+        @isTool = true
+        @firstX = 0
+        @prevX = 0
+    
+    actionInit: (x, y) !->
+        @firstX = x
+        @prevX = x
+        
+    actionStart: (x, y) !->
+        @firstX = x
+        @prevX = x
+        @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
+
+    actionEnd: !->
+        return
+        
+    actionMove: (x, y) !->
+        delta_x = x - @prevX
+        theta = delta_x / 500.0
+        @prevX = x
+        @canvas.transformation.rotate theta
         @lastPoint = [x, y]
         @canvas.redraw (0), false
     
@@ -493,6 +569,8 @@ getBrush = (brushtype, radius, color, canvas) ->
     | brushtype == 'wireframe' => new WireframeBrush radius, color, canvas
     | brushtype == 'sampler' => new ColorSamplerBrush radius, color, canvas
     | brushtype == 'pan' => new PanTool radius, color, canvas
+    | brushtype == 'scale' => new ScaleTool radius, color, canvas
+    | brushtype == 'rotate' => new ScaleTool radius, color, canvas
     | brushtype == 'lenny' => new Lenny radius, color, canvas
     | brushtype == 'eraser' => new EraserBrush radius, color, canvas
     | brushtype == 'copypaste' => new CopyPasteBrush radius, color, canvas

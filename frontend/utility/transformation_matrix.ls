@@ -15,20 +15,25 @@ class TransformationMatrix
     
     rotate: (delta_theta) !->
         @globalRotation += delta_theta
-        sin_theta = Math.sin(theta)
-        cos_theta = Math.cos(theta)
+        sin_theta = Math.sin(delta_theta)
+        cos_theta = Math.cos(delta_theta)
         @gtm[0] = (@gtm[0] * cos_theta) + (@gtm[1] * sin_theta)
         @gtm[1] = (@gtm[0] * (-sin_theta)) + (@gtm[1] * cos_theta)
         @gtm[3] = (@gtm[3] * cos_theta) + (@gtm[4] * sin_theta)
         @gtm[4] = (@gtm[3] * (-sin_theta)) + (@gtm[4] * cos_theta)
         return
     
-    scale: (delta_width_mult, delta_height_mult) ->
+    scale: (delta_width_mult, delta_height_mult) !->
         @globalScale[0] *= delta_width_mult
         @globalScale[1] *= delta_height_mult
         @gtm[0] *= delta_width_mult
         @gtm[4] *= delta_height_mult
         return
+    
+    addScale: (delta_width, delta_height) !->
+        @globalScale[0] += delta_width
+        @globalScale[1] += delta_height
+        @setScale @globalScale[0], @globalScale[1]
 
     setTranslation: (x, y) !->
         @gtm[2] = x
