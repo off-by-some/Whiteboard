@@ -1,11 +1,11 @@
 class TransformationMatrix
     (clientwidth, clientheight) ->
-        resetOrigin clientwidth, clientheight
+        @resetOrigin clientwidth, clientheight
         @globalScale = [1, 1];
         @globalRotation = 0;
         @gtm = [1, 0, 0, 0, 1, 0]
     
-    resetOrigin: (clientwidth, clienthight) !->
+    resetOrigin: (clientwidth, clientheight) !->
         @client_origin = [clientwidth / 2, clientheight / 2]
     
     translate: (delta_x, delta_y) !->
@@ -52,14 +52,25 @@ class TransformationMatrix
     # This shouldn't apply the transformation matrix
     # It should only get coords relative to the origin
     getActualCoords: (client_x, client_y) !->
-        return [Math.abs(client_x - @client_origin[0]), Math.abs(client_y - @client_origin[1])]
+        x = client_x - @client_origin[0]
+        y = @client_origin[1] - client_y
+        return @inverseTransformPoint(x, y)
     
-    transformPoint(x, y) !->
+    # This should restore canvas-specific coordinates
+    getCanvasCoords: (x, y) !->
+        return [x + @client_origin[0], -(y - @client_origin[1])]
+    
+    transformPoint: (x, y) !->
         t_x = (@gtm[0] * x) + (@gtm[1] * x) + @gtm[2]
         t_y = (@gtm[3] * y) + (@gtm[4] * y) + @gtm[5]
         return [t_x, t_y]
     
-    transformPoints(points) !->
+    inverseTransformPoint: (x, y) !->
+        t_x = (@gtm[0] * x) + (-@gtm[1] * x) - @gtm[2]
+        t_y = (-@gtm[3] * y) + (@gtm[4] * y) - @gtm[5]
+        return [t_x, t_y]
+    
+    transformPoints: (points) !->
         retPoints = []
         for i from 0 til points.length by 1
             t_x = (@gtm[0] * points[i][0]) + (@gtm[1] * points[i][0]) + @gtm[2]

@@ -60,6 +60,9 @@ canvas_script = ->
 		# The current list of users
 		canvas.users = {}
 		
+		# The canvas's global transformation matrix
+		canvas.transformation = new TransformationMatrix width, height
+		
 		# Initialize this user's brush
 		canvas.brush = new Brush brushRadius, (Color fillColor), canvas 
 		
@@ -136,9 +139,10 @@ canvas_script = ->
 			canvas.brush.actionMove x, y
 
 			# console.log canvas.commands
-
-			# Send the coords to any other users
-			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
+			
+			unless canvas.brush.isTool
+				# Send the coords to any other users
+				canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
 
 		# Gets the index of the closest useable frame less than specifed index
 		canvas.getLastFrameIndex = (start_index) !->
@@ -192,8 +196,9 @@ canvas_script = ->
 			# This is where actions start
 			canvas.brush.actionStart e.clientX, e.clientY
 			
-			#send the action start
-			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
+			unless canvas.brush.isTool
+				#send the action start
+				canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
 
 
 		canvas.node.onmouseup = (e) !->
@@ -218,8 +223,9 @@ canvas_script = ->
 			# Redraw to make lines prettier
 			canvas.redraw (canvas.history.length - 1), false
 			
-			#send the action end
-			canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-end'}
+			unless canvas.brush.isTool
+				#send the action end
+				canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-end'}
 		
 		# This handles color changes, it is a piss-poor substitute for an actual MVC architecture
 		canvas.doColorChange = (color) !->
@@ -365,3 +371,7 @@ canvas_script = ->
 		
 		(document.getElementById 'brightnessslider').onchange = (e) !->
 			canvas.doColorChange (canvas.brush.color.setLightness (parseFloat this.value))
+			
+		(document.getElementById 'pan').onclick = (e) !->
+			canvas.brush = new PanTool canvas.brush.radius, canvas.brush.color, canvas
+			canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
