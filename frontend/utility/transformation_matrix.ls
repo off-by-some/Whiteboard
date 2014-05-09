@@ -71,14 +71,14 @@ class TransformationMatrix
         return [t_x, t_y]
     
     inverseTransformPoint: (x, y) !->
-        t_x = (@gtm[0] * x) + (-@gtm[1] * x) - @gtm[2]
-        t_y = (-@gtm[3] * y) + (@gtm[4] * y) - @gtm[5]
+        t_x = ((1/@gtm[0]) * x) + (-@gtm[1] * x) - @gtm[2]
+        t_y = (-@gtm[3] * y) + ((1/@gtm[4]) * y) - @gtm[5]
         return [t_x, t_y]
     
     transformPoints: (points) !->
         retPoints = []
         for i from 0 til points.length by 1
-            t_x = (@gtm[0] * points[i][0]) + (@gtm[1] * points[i][0]) + @gtm[2]
-            t_y = (@gtm[3] * points[i][1]) + (@gtm[4] * points[i][1]) + @gtm[5]
+            t_x = (@gtm[0] * points[i][0]) + (@gtm[1] * points[i][1]) + @gtm[2]
+            t_y = (@gtm[3] * points[i][0]) + (@gtm[4] * points[i][1]) + @gtm[5]
             retPoints.push [t_x, t_y]
         return retPoints
