@@ -66,13 +66,15 @@ class TransformationMatrix
         return [x + @client_origin[0], -(y - @client_origin[1])]
     
     transformPoint: (x, y) !->
-        t_x = (@gtm[0] * x) + (@gtm[1] * x) + @gtm[2]
-        t_y = (@gtm[3] * y) + (@gtm[4] * y) + @gtm[5]
+        t_x = (@gtm[0] * x) + (@gtm[1] * y) + @gtm[2]
+        t_y = (@gtm[3] * x) + (@gtm[4] * y) + @gtm[5]
         return [t_x, t_y]
     
     inverseTransformPoint: (x, y) !->
-        t_x = ((1/@gtm[0]) * x) + (-@gtm[1] * x) - @gtm[2]
-        t_y = (-@gtm[3] * y) + ((1/@gtm[4]) * y) - @gtm[5]
+        # t_x = ((1/@gtm[0]) * x) + (-@gtm[1] * x) - (1 * @gtm[2])
+        # t_y = (-@gtm[3] * y) + ((1/@gtm[4]) * y) - (1 * @gtm[5])
+        t_x = (x - @gtm[2] - (@gtm[1] * y)) / @gtm[0]
+        t_y = (y - @gtm[5] - (@gtm[3] * x)) / @gtm[4]
         return [t_x, t_y]
     
     transformPoints: (points) !->
