@@ -109,7 +109,8 @@ class WireframeBrush extends Brush
         @type = "wireframe"
 
     actionInit: (x, y) !->
-        @canvas.context.moveTo x, y
+        canvas_coords = @canvas.transformation.getCanvasCoords x, y
+        @canvas.context.moveTo canvas_coords[0], canvas_coords[1]
         # Set the line's color from the brush's color
         @canvas.context.strokeStyle = @color.toCSS!
         
@@ -117,7 +118,7 @@ class WireframeBrush extends Brush
         @canvas.context.beginPath!
         
         # Set the line width from the brush's current radius
-        @canvas.context.line-width = @radius
+        @canvas.context.line-width = @radius * @canvas.transformation.globalScale[0]
     
     actionStart: (x, y) !->
         @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
@@ -128,43 +129,57 @@ class WireframeBrush extends Brush
         @canvas.context.closePath!
     
     actionMove: (x, y) !->
-    
+        actualPoint = @canvas.transformation.getActualCoords x, y
         @canvas.context.line-to x, y
+        @canvas.context.stroke!
         numpoints = @action_data.coords.length
         if numpoints >= 4
-            @canvas.context.lineTo @action_data.coords[numpoints-4][0], @action_data.coords[numpoints-4][1]
-        @canvas.context.stroke!
-        @action_data.coords.push [x, y]
+            transformed_point = @canvas.transformation.transformPoint @action_data.coords[numpoints - 4][0], @action_data.coords[numpoints - 4][1]
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed_point[0], transformed_point[1]
+            @canvas.context.moveTo canvas_coords[0], canvas_coords[1]
+            @canvas.context.line-to x, y
+            @canvas.context.stroke!
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionProcessCoords: (data) !->
         for i from 1 til data.coords.length by 1
-                @canvas.context.lineTo data.coords[i][0], data.coords[i][1]
+                data_canvas_coords = @canvas.transformation.getCanvasCoords data.coords[i][0], data.coords[i][1]
+                @canvas.context.line-to data_canvas_coords[0], data_canvas_coords[1]
                 nearpoint = data.coords[i-5]
                 if nearpoint
-                    @canvas.context.moveTo nearpoint[0], nearpoint[1]
-                    @canvas.context.lineTo data.coords[i][0], data.coords[i][1]
+                    canvas_coords = @canvas.transformation.getCanvasCoords nearpoint[0], nearpoint[1]
+                    @canvas.context.moveTo canvas_coords[0], canvas_coords[1]
+                    @canvas.context.line-to data_canvas_coords[0], data_canvas_coords[1]
                 @action_data.coords.push data.coords[i][0], data.coords[i][1]
         @canvas.context.stroke!
     
     actionRedraw: !->
-        @actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-        for i from 1 til @action_data.coords.length by 1
-                @canvas.context.lineTo @action_data.coords[i][0], @action_data.coords[i][1]
-                nearpoint = @action_data.coords[i-5]
+        transformed = @canvas.transformation.transformPoints @action_data.coords
+        canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+        @actionInit canvas_coords[0], canvas_coords[1]
+        for i from 1 til transformed.length by 1
+                canvas_coords = @canvas.transformation.getCanvasCoords transformed[i][0], transformed[i][1]
+                @canvas.context.lineTo canvas_coords[0], canvas_coords[1]
+                nearpoint = transformed[i - 5]
                 if nearpoint
+                    nearpoint = @canvas.transformation.getCanvasCoords transformed[i - 5][0], transformed[i - 5][1]
                     @canvas.context.moveTo nearpoint[0], nearpoint[1]
-                    @canvas.context.lineTo @action_data.coords[i][0], @action_data.coords[i][1]
+                    @canvas.context.lineTo canvas_coords[0], canvas_coords[1]
         @canvas.context.stroke!
     
     doAction: (data) !->
         unless data.coords.length == 0
-            @actionInit data.coords[0][0], data.coords[0][1]
-            for i from 1 til data.coords.length by 1
-                @canvas.context.lineTo data.coords[i][0], data.coords[i][1]
-                nearpoint = data.coords[i-5]
+            transformed = @canvas.transformation.transformPoints data.coords
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+            @actionInit canvas_coords[0], canvas_coords[1]
+            for i from 1 til transformed.length by 1
+                canvas_coords = @canvas.transformation.getCanvasCoords transformed[i][0], transformed[i][1]
+                @canvas.context.lineTo canvas_coords[0], canvas_coords[1]
+                nearpoint = transformed[i - 5]
                 if nearpoint
+                    nearpoint = @canvas.transformation.getCanvasCoords transformed[i - 5][0], transformed[i - 5][1]
                     @canvas.context.moveTo nearpoint[0], nearpoint[1]
-                    @canvas.context.lineTo data.coords[i][0], data.coords[i][1]
+                    @canvas.context.lineTo canvas_coords[0], canvas_coords[1]
             @canvas.context.stroke!
             @actionEnd!
 
@@ -322,38 +337,42 @@ class Lenny extends Brush
         @canvas.context.moveTo x, y
         # Set the line's color from the brush's color
         @canvas.context.fillStyle = @color.toCSS!
-        @canvas.context.font = "bold " + @radius + "px arial"
+        @canvas.context.font = "bold " + (@radius * @canvas.transformation.globalScale[0]) + "px arial"
         @canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
         
     actionStart: (x, y) !->
         @actionInit x, y
         @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
-        @action_data.coords.push [x, y]
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
 
     actionEnd: !->
         return
     
     actionMove: (x, y) !->
-        
         @canvas.context.fillText "( ͡° ͜ʖ ͡°)", x, y
-        @action_data.coords.push [x, y]
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionProcessCoords: (data) !->
         for p in data.coords
-            @canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
+            canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+            @canvas.context.fillText "( ͡° ͜ʖ ͡°)", canvas_coords[0], canvas_coords[1]
             @action_data.coords.push p[0], p[1]
     
     actionRedraw: !->
         unless @action_data.coords.length == 0
-            @actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-            for p in @action_data
-                @canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
+            transformed = @canvas.transformation.transformPoints @action_data.coords
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                @canvas.context.fillText "( ͡° ͜ʖ ͡°)", canvas_coords[0], canvas_coords[1]
         
     doAction: (data) !->
-        unless data.coords.length == 0
-            @actionInit data.coords[0][0], data.coords[0][1]
-            for p in data.coords
-                @canvas.context.fillText "( ͡° ͜ʖ ͡°)", p[0], p[1]
+        transformed = @canvas.transformation.transformPoints data.coords
+        unless transformed.length == 0
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                @canvas.context.fillText "( ͡° ͜ʖ ͡°)", canvas_coords[0], canvas_coords[1]
         
 class EraserBrush extends Brush
     (radius, color, canvas) ->
@@ -361,11 +380,12 @@ class EraserBrush extends Brush
         @type = "eraser"
     
     actionInit: (x, y) !->
-        corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
-        corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
-        @canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+        @sradius = @radius * @canvas.transformation.globalScale[0]
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
+        @canvas.context.clearRect corner_x, corner_y, @sradius * 2, @sradius * 2
         @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
-        @action_data.coords.push [x, y]
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionStart: (x, y) !->
         @actionInit x, y
@@ -374,31 +394,37 @@ class EraserBrush extends Brush
         return
     
     actionMove: (x, y) !->
-        corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
-        corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
-        @canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
-        @action_data.coords.push [x, y]
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
+        @canvas.context.clearRect corner_x, corner_y, @sradius * 2, @sradius * 2
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionProcessCoords: (data) !->
         for p in data.coords
-            corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-            corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
-            @canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
-            @action_data.coords.push p[0], p[1]
+            corner_x = if (p[0] - @sradius) >= 0 then (p[0] - @sradius) else 0
+            corner_y = if (p[1] - @sradius) >= 0 then (p[1] - @sradius) else 0
+            @canvas.context.clearRect corner_x, corner_y, @sradius * 2, @sradius * 2
+            @action_data.coords.push (@canvas.transformation.getActualCoords p[0], p[1])
     
     actionRedraw: !->
-        @actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-        for p in @action_data
-            corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-            corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
-            @canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+        unless @action_data.coords.length == 0
+            transformed = @canvas.transformation.transformPoints @action_data.coords
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
+                @canvas.context.clearRect corner_x, corner_y, @sradius * 2, @sradius * 2
     
     doAction: (data) !->
         unless data.coords.length == 0
-            for p in data.coords
-                corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-                corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
-                @canvas.context.clearRect corner_x, corner_y, @radius * 2, @radius * 2
+            transformed = @canvas.transformation.transformPoints data.coords
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
+                @canvas.context.clearRect corner_x, corner_y, @sradius * 2, @sradius * 2
 
 class CopyPasteBrush extends Brush
     (radius, color, canvas) ->
@@ -406,11 +432,12 @@ class CopyPasteBrush extends Brush
         @type = "copypaste"
         @imgData = void
     actionInit: (x, y) !->
-        corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
-        corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
-        @imgData = @canvas.context.getImageData corner_x, corner_y, @radius * 2, @radius * 2
+        @sradius = @radius * @canvas.transformation.globalScale[0]
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
+        @imgData = @canvas.context.getImageData corner_x, corner_y, @sradius * 2, @sradius * 2
         @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
-        @action_data.coords.push [x, y]
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionStart: (x, y) !->
         @actionInit x, y
@@ -419,33 +446,36 @@ class CopyPasteBrush extends Brush
         return
     
     actionMove: (x, y) !->
-        corner_x = if (x - @radius) >= 0 then (x - @radius) else 0
-        corner_y = if (y - @radius) >= 0 then (y - @radius) else 0
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
         @canvas.context.putImageData @imgData, corner_x, corner_y
-        @action_data.coords.push [x, y]
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
     
     actionProcessCoords: (data) !->
         for p in data.coords
-            corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-            corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+            corner_x = if (p[0] - @sradius) >= 0 then (p[0] - @sradius) else 0
+            corner_y = if (p[1] - @sradius) >= 0 then (p[1] - @sradius) else 0
             @canvas.context.putImageData @imgData, corner_x, corner_y
-            @action_data.coords.push p[0], p[1]
+            @action_data.coords.push (@canvas.transformation.getActualCoords p[0], p[1])
     
     actionRedraw: !->
-        @actionInit @action_data.coords[0][0], @action_data.coords[0][1]
-        for p in @action_data
-            corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-            corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
-            @canvas.context.putImageData @imgData, corner_x, corner_y
+        unless @action_data.coords.length == 0
+            transformed = @canvas.transformation.transformPoints @action_data.coords
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
+                @canvas.context.putImageData @imgData, corner_x, corner_y
         
     doAction: (data) !->
         unless data.coords.length == 0
-            corner_x = if (data.coords[0][0] - @radius) >= 0 then (data.coords[0][0] - @radius) else 0
-            corner_y = if (data.coords[0][1] - @radius) >= 0 then (data.coords[0][1] - @radius) else 0
-            @imgData = @canvas.context.getImageData corner_x, corner_y, @radius * 2, @radius * 2
-            for p in data.coords
-                corner_x = if (p[0] - @radius) >= 0 then (p[0] - @radius) else 0
-                corner_y = if (p[1] - @radius) >= 0 then (p[1] - @radius) else 0
+            transformed = @canvas.transformation.transformPoints data.coords
+            @actionInit transformed[0][0], transformed[0][1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
                 @canvas.context.putImageData @imgData, corner_x, corner_y
 
 class SketchBrush extends Brush

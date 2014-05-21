@@ -142,6 +142,8 @@ canvas_script = ->
 			
 			unless canvas.brush.isTool
 				# Send the coords to any other users
+				# TODO: The coords this sends are specific to our canvas, we need to transform them before sending
+				# Also, all the brush's actionMove, actionStart, etc need to be rewritten to account for this.
 				canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
 
 		# Gets the index of the closest useable frame less than specifed index
