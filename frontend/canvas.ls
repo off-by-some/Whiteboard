@@ -277,12 +277,19 @@ canvas_script = ->
             if e.ctrlKey
                 canvas.ctrlActivated = false
 
-        window.onresize= (e) !->
-            # console.log \ypeueoaueoa
+        window.onresize = (e) !->
             canvas.width = window.innerWidth
             canvas.height = window.innerHeight
+            delta_width = Math.abs (window.innerWidth - canvas.node.width)
+            delta_height = Math.abs (window.innerHeight - canvas.node.height)
+            newscale = if delta_width > delta_height then (window.innerWidth / canvas.node.width) else (window.innerHeight / canvas.node.height)
             canvas.node.width = window.innerWidth
             canvas.node.height = window.innerHeight
+            canvas.transformation.resetOrigin canvas.node.width, canvas.node.height
+            canvas.transformation.scale newscale, newscale
+            canvas.invalidateAllFrames!
+            canvas.redraw (canvas.history.length - 1), false
+            canvas.pushFrame!
         
         # This is called when a user types in a color value
         # Could be better, it really should happen either on blur or when enter is pressed
