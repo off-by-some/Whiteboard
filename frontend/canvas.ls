@@ -111,6 +111,8 @@ canvas_script = ->
         # This is for when we need to render what other users have drawn
         canvas.userdraw = (user_id, x, y) !->
             temp_user = canvas.users[user_id]
+            # Translate coords to our local coords
+            localcoords = canvas.transformation.getCanvasCoords x, y
             # Currently there is no reason to handle the results of a tool
             unless temp_user.brush.isTool
                 # First we stop the current user's drawing so paths don't get messed up
@@ -119,7 +121,7 @@ canvas_script = ->
                 # actionRedraw will draw everything from the other user up until this point
                 temp_user.brush.actionRedraw!
                 # Then we draw the current data
-                temp_user.brush.actionMove x, y
+                temp_user.brush.actionMove localcoords[0], localcoords[1]
                 # and close the path so this user can continue drawing
                 temp_user.brush.actionEnd!
                 # Then we restore this user's path
@@ -210,10 +212,7 @@ canvas_script = ->
             # console.log canvas.commands
             
             unless canvas.brush.isTool
-                # Send the coords to any other users
-                # TODO: The coords this sends are specific to our canvas, we need to transform them before sending
-                # Also, all the brush's actionMove, actionStart, etc need to be rewritten to account for this.
-                canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:[x,y]}
+                canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:(canvas.transformation.getActualCoords x, y)}
 
         canvas.node.onmouseup = (e) !->
 
