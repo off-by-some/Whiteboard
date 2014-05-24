@@ -224,23 +224,44 @@ class PanTool extends Brush
         @type = "pan"
         @isTool = true
         @lastPoint = [0, 0]
+        @panningFrame = void
+        @panningOffset = [0, 0]
     
     actionInit: (x, y) !->
         @lastPoint = [x, y]
         
     actionStart: (x, y) !->
         @lastPoint = [x, y]
+        tempCanvas = {}
+        tempCanvas.node = @canvas.node
+        tempCanvas.context = @canvas.context
+        @canvas.node = document.createElement 'canvas'
+        @canvas.node.width = tempCanvas.node.width * 2
+        @canvas.node.height = tempCanvas.node.height * 2
+        @canvas.node.style.width = '' + @canvas.node.width + 'px'
+        @canvas.node.style.height = '' + @canvas.node.height + 'px'
+        @canvas.context = @canvas.node.getContext '2d'
+        @canvas.transformation.resetOrigin @canvas.node.width, @canvas.node.height
+        @canvas.redraw 0, false
+        @panningFrame = @canvas.getFrame!
+        @canvas.node = tempCanvas.node
+        @canvas.context = tempCanvas.context
+        @canvas.transformation.resetOrigin @canvas.node.width, @canvas.node.height
+        @canvas.invalidateAllFrames!
         @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
 
     actionEnd: !->
+        # @canvas.pushFrame!
         return
         
     actionMove: (x, y) !->
         delta_x = x - @lastPoint[0]
         delta_y = -(y - @lastPoint[1])
+        @panningOffset[0] += delta_x
+        @panningOffset[1] -= delta_y
         @canvas.transformation.translate delta_x, delta_y
         @lastPoint = [x, y]
-        @canvas.redraw (0), false
+        @canvas.context.putImageData @panningFrame, @panningOffset[0] - (@canvas.node.width / 2), @panningOffset[1] - (@canvas.node.height / 2)
     
     actionProcessCoords: (data) ->
         return
@@ -461,7 +482,8 @@ class CopyPasteBrush extends Brush
     actionRedraw: !->
         unless @action_data.coords.length == 0
             transformed = @canvas.transformation.transformPoints @action_data.coords
-            @actionInit transformed[0][0], transformed[0][1]
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+            @actionInit canvas_coords[0], canvas_coords[1]
             for p in transformed
                 canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
                 corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
@@ -471,7 +493,8 @@ class CopyPasteBrush extends Brush
     doAction: (data) !->
         unless data.coords.length == 0
             transformed = @canvas.transformation.transformPoints data.coords
-            @actionInit transformed[0][0], transformed[0][1]
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+            @actionInit canvas_coords[0], canvas_coords[1]
             for p in transformed
                 canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
                 corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0

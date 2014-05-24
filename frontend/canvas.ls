@@ -135,12 +135,16 @@ canvas_script = ->
         
         # Invalidate all frames, useful for events such as panning and scaling
         canvas.invalidateAllFrames = !->
-            for i from 0 to canvas.history.length by 1
+            for i from 0 til canvas.history.length by 1
                 canvas.history[i].frame = void
         
         # Get a frame
         canvas.getFrame = !->
             return canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+        
+        # Sets a frame for the latest action
+        canvas.pushFrame = !->
+            canvas.history[canvas.history.length - 1].frame = canvas.getFrame!
         
         # Redraw everything after the given index, optionally excluding it
         canvas.redraw = (index, exclude) !->
