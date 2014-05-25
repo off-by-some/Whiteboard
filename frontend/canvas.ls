@@ -14,6 +14,7 @@ canvas_script = ->
         
         # Eventually we'll have layering, so we handle
         # this attribute programatically
+        canvas.node.style = "position: absolute; top:0; left:0"
         canvas.node.setAttribute "z-index", "1"
         canvas.node.width = width
         canvas.node.height = height
