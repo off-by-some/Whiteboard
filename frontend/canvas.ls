@@ -37,7 +37,11 @@ canvas_script = ->
         canvas.colorwheel = {}
         canvas.colorwheel.canvas = document.createElement 'canvas'
         canvas.colorwheel.context = canvas.colorwheel.canvas.getContext '2d'
-        canvas.colorwheel.context.drawImage (document.getElementById 'colorwheel'), 0, 0
+        colorwheelimage = document.createElement "img"
+        colorwheelimage.src = colorwheel_data
+        colorwheelimage.id = "colorwheel"
+        (document.getElementById 'cwdiv').appendChild colorwheelimage
+        canvas.colorwheel.context.drawImage colorwheelimage, 0, 0
 
         # Our ID, it'll be replaced with the real one as soon as we
         # send a request to the server to get it
