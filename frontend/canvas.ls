@@ -12,6 +12,8 @@ canvas_script = ->
         canvas = {}
         canvas.node = document.createElement 'canvas'
         
+        canvas.layermanager = new LayerManager canvas, parent, 'layerdiv'
+        
         # Eventually we'll have layering, so we handle
         # this attribute programatically
         canvas.node.style = "position: absolute; top:0; left:0"
@@ -356,6 +358,10 @@ canvas_script = ->
             canvas.brush = new SketchBrush canvas.brush.radius, canvas.brush.color, canvas
             canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
+        
+        (document.getElementById 'addlayerbutton').onclick = (e) !->
+            
+            canvas.layermanager.createMenuEntry!
         
         # Be absoulely certain we get the right coordinates    
         getCoordinates = (e, element) !->
