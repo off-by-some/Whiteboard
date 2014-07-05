@@ -344,6 +344,12 @@ canvas_script = ->
             canvas.brush = new CopyPasteBrush canvas.brush.radius, canvas.brush.color, canvas
             canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
+            
+        (document.getElementById 'developer-brush').onclick = (e) !->
+
+            canvas.brush = new DeveloperBrush canvas.brush.radius, canvas.brush.color, canvas
+            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'developer'}
         
         (document.getElementById 'sketch-brush').onclick = (e) !->
 

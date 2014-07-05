@@ -501,6 +501,60 @@ class CopyPasteBrush extends Brush
                 corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
                 @canvas.context.putImageData @imgData, corner_x, corner_y
 
+class DeveloperBrush extends Brush
+    (radius, color, canvas) ->
+        super ...
+        @type = "developer"
+        @img = new Image
+        @img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABHNCSVQICAgIfAhkiAAAA5ZJREFUeJztndtu7SAMRNlV//+Xd5+iRggIBo89dljSeTptsBls7rSUAxUfbwM2+C7+HrXP1MZVrArwBFUdUBkz4C6Gls0tgd3rw92ABxBCMJTVhVGQuuVa2+gqDJMg3kLUXPaY2uHtdCkkqaKDiyieoEZOmnxv/1ITzclo9oqJ6BxclB/kxwdEFKOU/74kqv1NsoR+Cj9SOHEjvD+hje+gKopXH5IJ1TnKEUQPlSixFCRjurpQixLrCMm+BLHd6KwEyRwdFyqN7VfjI5N4LqOP0Lbru/NNS0FQ9JbtZytFGr2j734WvudCCCMneZp3hPA1hJFCej5tTRQt8rr3Js9T5SDsWu5HrPoQSzHqHcinsj0E64IWxCJV7e7FrwgGEynDKAvdgk0j5Kxl4VjKDhkipMeoQjRa/ajjXp6PZBIEea6r14+MRpDX/1Ot31l16p7znFH5dPMvOoOAtHwV+//WTh0RVSqp6a2CSCvPLNLfKkgpdp2tSMw3C2KBWPQsw170etTq71N26hb5974p1ao85NBY9XT8WyKk/jmzFi8t6219yM5h6buYsAEBWhCrkcxVSU8VvRshcH+sUpbVmg76kAG8P7Qci1Mtsikws3HlvX3d5U1rWjW0E8M3izKNlSB0IStAoyFNf4N52JsloqjnIVkqGYalIClvsGrDnLJYuOY2Jg3J68JOtCgxG5R4REjUEZfJVQPPlBUtSi6kdtNODO+gLtPMsrqHAV+UZO7UUanNZBm9Kmsab0FmDGZKbfBFUk9BvDr3UbmapxCXVnq9I8STuh+ZEUL77gkdsymL4ewudHTFgvRwQhSW7Y2UsqKIsmVnBEEibv8u2xtBkIsIrySEeXxGC2ZRVA40RDi5WDu4elWsJ6RmOtz+VgRBWqyI0juiY7WeRc/s2P7poRfLFAZ/dMa7D9G6JmAlCjw6MrxszbALqVa2d4Q8Meuopyi0x0UloA9Es/QrYUA7YSVKCjFKyfHCA+TbHn2I9YgIUV6ayCjF3hnNSFG94NnC6y3diH8Kz8R2j4pZOQKEfmqpRWshE15fHo9TzpRp0RolaSf0HKOHZLs2xaybGSYxZq5OpxVF6hzLhM5NEIscLe3EGV7bnrnyDAHxpxqk5aBGU1qsRsuSL1rPpWp/MzrLdbJTeewtmwVRPe3e0zhCKJOhQlNFangHbkhHTpl8p6aVXsNM9LK2khMNh8PhcDgcDofD4XCIyR/mru0nctuVrAAAAABJRU5ErkJggg=="
+    actionInit: (x, y) !->
+        @sradius = @radius * @canvas.transformation.globalScale[0]
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
+        @action_data = {brushtype:@type, radius:@radius, color:(@color.toCSS!), coords:[]}
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
+    
+    actionStart: (x, y) !->
+        @actionInit x, y
+    
+    actionEnd: !->
+        return
+    
+    actionMove: (x, y) !->
+        corner_x = if (x - @sradius) >= 0 then (x - @sradius) else 0
+        corner_y = if (y - @sradius) >= 0 then (y - @sradius) else 0
+        @canvas.context.drawImage @img, corner_x, corner_y, @sradius, @sradius
+        @action_data.coords.push (@canvas.transformation.getActualCoords x, y)
+    
+    actionProcessCoords: (data) !->
+        for p in data.coords
+            corner_x = if (p[0] - @sradius) >= 0 then (p[0] - @sradius) else 0
+            corner_y = if (p[1] - @sradius) >= 0 then (p[1] - @sradius) else 0
+            @canvas.context.drawImage @img, corner_x, corner_y, @sradius, @sradius
+            @action_data.coords.push (@canvas.transformation.getActualCoords p[0], p[1])
+    
+    actionRedraw: !->
+        unless @action_data.coords.length == 0
+            transformed = @canvas.transformation.transformPoints @action_data.coords
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+            @actionInit canvas_coords[0], canvas_coords[1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
+                @canvas.context.drawImage @img, corner_x, corner_y, @sradius, @sradius
+        
+    doAction: (data) !->
+        unless data.coords.length == 0
+            transformed = @canvas.transformation.transformPoints data.coords
+            canvas_coords = @canvas.transformation.getCanvasCoords transformed[0][0], transformed[0][1]
+            @actionInit canvas_coords[0], canvas_coords[1]
+            for p in transformed
+                canvas_coords = @canvas.transformation.getCanvasCoords p[0], p[1]
+                corner_x = if (canvas_coords[0] - @sradius) >= 0 then (canvas_coords[0] - @sradius) else 0
+                corner_y = if (canvas_coords[1] - @sradius) >= 0 then (canvas_coords[1] - @sradius) else 0
+                @canvas.context.drawImage @img, corner_x, corner_y, @sradius, @sradius
+
 class SketchBrush extends Brush
     (radius, color, canvas) ->
     
@@ -627,4 +681,5 @@ getBrush = (brushtype, radius, color, canvas) ->
     | brushtype == 'lenny' => new Lenny radius, color, canvas
     | brushtype == 'eraser' => new EraserBrush radius, color, canvas
     | brushtype == 'copypaste' => new CopyPasteBrush radius, color, canvas
+    | brushtype == 'developer' => new DeveloperBrush radius, color, canvas
     | brushtype == 'sketch' => new SketchBrush radius, color, canvas
