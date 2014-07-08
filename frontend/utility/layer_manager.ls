@@ -1,4 +1,3 @@
-#TODO: Layers should have an immutable unique id as well as a name
 class LayerManager
     (canvas, canvas_div, layer_menu_div) !->
         @canvas = canvas
@@ -19,10 +18,11 @@ class LayerManager
         newlayer.node.width = @canvas.node.width
         newlayer.node.height = @canvas.node.height
         newlayer.name = "L_" + @last_z_index
-        newlayer.node.setAttribute "id", newlayer.name
+        newlayer.UID = "layer_" + (random_string 20)
+        newlayer.node.setAttribute "id", newlayer.UID
         newlayer.context = @canvas.node.getContext '2d'
         # @parentdiv.appendChild newlayer.node
-        @layers[newlayer.name] = newlayer
+        @layers[newlayer.UID] = newlayer
         
         @last_z_index++
         
@@ -39,10 +39,7 @@ class LayerManager
         layer_name_entry.value = newlayer.name
         layer_name_entry.size = 6
         layer_name_entry.onkeypress = (e) !~>
-            delete @layers[newlayer.name]
             newlayer.name = layer_name_entry.value
-            newlayer.menuEntry.id = layer_name_entry.value
-            @layers[newlayer.name] = newlayer
         entrydiv.appendChild layer_name_entry
         
         layer_remove_button = document.createElement "input"
@@ -54,7 +51,7 @@ class LayerManager
         
         entrydiv.onclick = (e) !~>
             if @active_layer != void
-                if @active_layer.name != newlayer.name
+                if @active_layer.UID != newlayer.UID
                     @active_layer.menuEntry.style.background = "rgba(100, 100, 155, 0.8)"
                     entrydiv.style.background = "rgba(180, 100, 200, 0.8)"
                     @active_layer = newlayer
