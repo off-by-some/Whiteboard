@@ -45,10 +45,7 @@ canvas_script = ->
 
         # Our ID, it'll be replaced with the real one as soon as we
         # send a request to the server to get it
-        canvas.id = ""
-        pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        for i from 0 to 20 by 1
-            canvas.id += pool.charAt (Math.floor ((Math.random!) * pool.length))
+        canvas.id = random_string 20
 
         (document.getElementById 'userlist').innerHTML = "<b>Your ID:</b><br />" + canvas.id + "<br /><br /><b>Other users:</b><hr />"
 
