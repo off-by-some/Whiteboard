@@ -1,6 +1,8 @@
 class LayerManager
-    (canvas, canvas_div, layer_menu_div) !->
+    (canvas, width, height, canvas_div, layer_menu_div) !->
         @canvas = canvas
+        @width = width
+        @height = height
         @parentdiv = canvas_div
         @layer_menu = document.getElementById layer_menu_div
         @layers = {}
@@ -15,12 +17,17 @@ class LayerManager
         newlayer.node.style.left = "0"
         newlayer.node.style.visibility = "visible"
         newlayer.node.setAttribute "z-index", (@last_z_index.toString!)
-        newlayer.node.width = @canvas.node.width
-        newlayer.node.height = @canvas.node.height
+        
+        #Both of these are wrong now
+        newlayer.node.width = @width
+        newlayer.node.height = @height
+        
         newlayer.name = "L_" + @last_z_index
         newlayer.UID = "layer_" + (random_string 20)
         newlayer.node.setAttribute "id", newlayer.UID
-        newlayer.context = @canvas.node.getContext '2d'
+        
+        #Wrong now
+        newlayer.context = newlayer.node.getContext '2d'
         # @parentdiv.appendChild newlayer.node
         @layers[newlayer.UID] = newlayer
         

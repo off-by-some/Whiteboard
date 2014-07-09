@@ -10,27 +10,24 @@ canvas_script = ->
     createCanvas = (parent, width=100, height=100) ->
 
         canvas = {}
-        canvas.node = document.createElement 'canvas'
         
-        canvas.layermanager = new LayerManager canvas, parent, 'layerdiv'
+        canvas.layermanager = new LayerManager canvas, width, height, parent, 'layerdiv'
         
-        # Eventually we'll have layering, so we handle
-        # this attribute programatically
-        canvas.node.style = "position: absolute; top:0; left:0"
-        canvas.node.setAttribute "z-index", "1"
-        canvas.node.width = width
-        canvas.node.height = height
-        # Default cursor is for the default brush: pencil
-        canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-        canvas.context = canvas.node.getContext '2d'
-        parent.appendChild canvas.node
+        canvas.layermanager.createMenuEntry!
+        canvas.layer = canvas.layermanager.getActiveLayer!
+        #TODO: You've just replaced all canvas.node with canvas.layer.node
+            #Replace canvas.layer.context with canvas.layer.context
+            #Find out how much shit you've broken
+        
+        canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+        parent.appendChild canvas.layer.node
         canvas
 
     init = (container_id, width, height, fillColor, brushRadius) !->
 
         container = document.getElementById container_id
         canvas = createCanvas container, width, height
-        context = canvas.context
+        context = canvas.layer.context
         points = {}
         
         # The colorwheel has to be stored in an in-memory canvas for me to get data from it
@@ -146,7 +143,7 @@ canvas_script = ->
         
         # Get a frame
         canvas.getFrame = !->
-            return canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+            return canvas.layer.context.getImageData 0, 0, canvas.layer.node.width, canvas.layer.node.height
         
         # Sets a frame for the latest action
         canvas.pushFrame = !->
@@ -156,9 +153,9 @@ canvas_script = ->
         canvas.redraw = (index, exclude) !->
             frameIndex = canvas.getLastFrameIndex index
             unless frameIndex == -1
-                canvas.context.putImageData canvas.history[frameIndex].frame, 0, 0
+                canvas.layer.context.putImageData canvas.history[frameIndex].frame, 0, 0
             else
-                canvas.context.clearRect 0, 0, canvas.node.width, canvas.node.height
+                canvas.layer.context.clearRect 0, 0, canvas.layer.node.width, canvas.layer.node.height
             # store the current brush
             tempBrush = canvas.brush
             # Redraw everything in history
@@ -170,7 +167,7 @@ canvas_script = ->
                         canvas.brush.doAction tempaction.data
                     # Update any frames after the one we used
                     if tempaction.frame != void
-                        tempaction.frame = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+                        tempaction.frame = canvas.layer.context.getImageData 0, 0, canvas.layer.node.width, canvas.layer.node.height
             canvas.brush = tempBrush
         
         # Undo the most recent action by the specified user
@@ -190,7 +187,7 @@ canvas_script = ->
             if canvas.isDrawing
                 canvas.brush.actionRedraw!
 
-        canvas.node.onmousedown = (e) !->
+        canvas.layer.node.onmousedown = (e) !->
 
             canvas.isDrawing = yes
             
@@ -201,7 +198,7 @@ canvas_script = ->
                 #send the action start
                 canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
 
-        canvas.node.onmousemove = (e) !->
+        canvas.layer.node.onmousemove = (e) !->
 
             return unless canvas.isDrawing
 
@@ -218,7 +215,7 @@ canvas_script = ->
             unless canvas.brush.isTool
                 canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:(canvas.transformation.getActualCoords x, y)}
 
-        canvas.node.onmouseup = (e) !->
+        canvas.layer.node.onmouseup = (e) !->
 
             canvas.isDrawing = off
 
@@ -272,7 +269,7 @@ canvas_script = ->
             case 48
                 if canvas.ctrlActivated
                     x = canvas.history[(canvas.history.length - 1)]
-                    x.frame = canvas.context.getImageData 0, 0, canvas.node.width, canvas.node.height
+                    x.frame = canvas.layer.context.getImageData 0, 0, canvas.layer.node.width, canvas.layer.node.height
 
                     canvas.history = []
                     canvas.history.push x
@@ -284,12 +281,12 @@ canvas_script = ->
         window.onresize = (e) !->
             canvas.width = window.innerWidth
             canvas.height = window.innerHeight
-            delta_width = Math.abs (window.innerWidth - canvas.node.width)
-            delta_height = Math.abs (window.innerHeight - canvas.node.height)
-            newscale = if delta_width > delta_height then (window.innerWidth / canvas.node.width) else (window.innerHeight / canvas.node.height)
-            canvas.node.width = window.innerWidth
-            canvas.node.height = window.innerHeight
-            canvas.transformation.resetOrigin canvas.node.width, canvas.node.height
+            delta_width = Math.abs (window.innerWidth - canvas.layer.node.width)
+            delta_height = Math.abs (window.innerHeight - canvas.layer.node.height)
+            newscale = if delta_width > delta_height then (window.innerWidth / canvas.layer.node.width) else (window.innerHeight / canvas.layer.node.height)
+            canvas.layer.node.width = window.innerWidth
+            canvas.layer.node.height = window.innerHeight
+            canvas.transformation.resetOrigin canvas.layer.node.width, canvas.layer.node.height
             canvas.transformation.scale newscale, newscale
             canvas.invalidateAllFrames!
             canvas.redraw (canvas.history.length - 1), false
@@ -310,54 +307,54 @@ canvas_script = ->
         # Downloads ftw!  I really do need to code up that svg exporter though...
         (document.getElementById 'download').onclick = (e) !->
 
-            window.open (canvas.node.toDataURL!), 'Download'
+            window.open (canvas.layer.node.toDataURL!), 'Download'
         
         (document.getElementById 'csampler').onclick = (e) !->
 
             canvas.brush = new ColorSamplerBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'sampler'}
 
         (document.getElementById 'pencil-brush').onclick = (e) !->
 
             canvas.brush = new Brush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'default'}
 
         (document.getElementById 'wireframe-brush').onclick = (e) !->
 
             canvas.brush = new WireframeBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_wireframe.png\"), url(\"content/cursor_wireframe.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'wireframe'}
         
         (document.getElementById 'lenny-brush').onclick = (e) !->
 
             canvas.brush = new Lenny canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'lenny'}
         
         (document.getElementById 'eraser-brush').onclick = (e) !->
 
             canvas.brush = new EraserBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'eraser'}
         
         (document.getElementById 'copypaste-brush').onclick = (e) !->
 
             canvas.brush = new CopyPasteBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'copypaste'}
             
         (document.getElementById 'developer-brush').onclick = (e) !->
 
             canvas.brush = new DeveloperBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'developer'}
         
         (document.getElementById 'sketch-brush').onclick = (e) !->
 
             canvas.brush = new SketchBrush canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
             canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'brush-change', data:'sketch'}
         
         (document.getElementById 'addlayerbutton').onclick = (e) !->
@@ -408,10 +405,10 @@ canvas_script = ->
             
         (document.getElementById 'pan').onclick = (e) !->
             canvas.brush = new PanTool canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
         (document.getElementById 'scale').onclick = (e) !->
             canvas.brush = new ScaleTool canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
         (document.getElementById 'rotate').onclick = (e) !->
             canvas.brush = new RotateTool canvas.brush.radius, canvas.brush.color, canvas
-            canvas.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
+            canvas.layer.node.style.cursor = 'url(\"content/cursor_pipet.png\"), url(\"content/cursor_pipet.cur\"), pointer'
