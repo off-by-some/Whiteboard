@@ -8,6 +8,8 @@ class LayerManager
         @layers = {}
         @active_layer = void
         @last_z_index = 0
+        @mouselayer = void
+        @mouselayer = @addLayer!
         
     addLayer: !->
         newlayer = {}
@@ -26,9 +28,11 @@ class LayerManager
         newlayer.UID = "layer_" + (random_string 20)
         newlayer.node.setAttribute "id", newlayer.UID
         
-        #Wrong now
         newlayer.context = newlayer.node.getContext '2d'
-        # @parentdiv.appendChild newlayer.node
+        unless @mouselayer == void
+            @parentdiv.insertBefore newlayer.node, @mouselayer.node
+        else
+            @parentdiv.appendChild newlayer.node
         @layers[newlayer.UID] = newlayer
         
         @last_z_index++
@@ -74,8 +78,12 @@ class LayerManager
             @active_layer.menuEntry.style.background = "rgba(100, 100, 155, 0.8)"
         @active_layer = newlayer
     
-    setActiveLayer: (layername) !->
-        @active_layer = @layers[layername]
+    setActiveLayer: (layer_uid) !->
+        @active_layer = @layers[layer_uid]
+    
+    setLayerZIndex: (layer_uid, newZ) !->
+        console.log layer_uid + ", " + newZ
+        @layers[layer_uid].node.setAttribute "z-index", newZ
     
     getActiveLayer: !->
         return @active_layer

@@ -20,7 +20,7 @@ canvas_script = ->
             #Find out how much shit you've broken
         
         canvas.layer.node.style.cursor = 'url(\"content/cursor_pencil.png\"), url(\"content/cursor_pencil.cur\"), pointer'
-        parent.appendChild canvas.layer.node
+
         canvas
 
     init = (container_id, width, height, fillColor, brushRadius) !->
@@ -187,7 +187,7 @@ canvas_script = ->
             if canvas.isDrawing
                 canvas.brush.actionRedraw!
 
-        canvas.layer.node.onmousedown = (e) !->
+        canvas.layermanager.mouselayer.node.onmousedown = (e) !->
 
             canvas.isDrawing = yes
             
@@ -198,7 +198,7 @@ canvas_script = ->
                 #send the action start
                 canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-start', data:(canvas.brush.getActionData!)}
 
-        canvas.layer.node.onmousemove = (e) !->
+        canvas.layermanager.mouselayer.node.onmousemove = (e) !->
 
             return unless canvas.isDrawing
 
@@ -206,6 +206,7 @@ canvas_script = ->
             y = e.clientY #- this.offsetTop
 
             # console.log x, y
+            console.log "something"
             
             # Process new coordinate data, draw accordingly
             canvas.brush.actionMove x, y
@@ -215,7 +216,7 @@ canvas_script = ->
             unless canvas.brush.isTool
                 canvas.rtcmanager.sendAll JSON.stringify {id:canvas.id, action:'action-data', data:(canvas.transformation.getActualCoords x, y)}
 
-        canvas.layer.node.onmouseup = (e) !->
+        canvas.layermanager.mouselayer.node.onmouseup = (e) !->
 
             canvas.isDrawing = off
 
