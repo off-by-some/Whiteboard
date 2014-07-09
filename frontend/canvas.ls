@@ -204,9 +204,6 @@ canvas_script = ->
 
             x = e.clientX #- this.offsetLeft
             y = e.clientY #- this.offsetTop
-
-            # console.log x, y
-            console.log "something"
             
             # Process new coordinate data, draw accordingly
             canvas.brush.actionMove x, y

@@ -82,7 +82,6 @@ class LayerManager
         @active_layer = @layers[layer_uid]
     
     setLayerZIndex: (layer_uid, newZ) !->
-        console.log layer_uid + ", " + newZ
         @layers[layer_uid].node.setAttribute "z-index", newZ
     
     getActiveLayer: !->
