@@ -69,22 +69,6 @@ module.exports = (grunt) ->
         src: "#{ baseDirectory }/bower_components"
         dest: "#{ baseDirectory }/temp/components"
 
-    # LiveScript
-    # ----------
-    livescript:
-      compile:
-        files: [
-          expand: true
-          filter: 'isFile'
-          cwd: "#{ baseDirectory }/src/scripts"
-          dest: "#{ baseDirectory }/temp/scripts"
-          src: '**/*.ls'
-          ext: '.js'
-        ]
-
-        options:
-          bare: true
-
     # Micro-templates
     # ---------------
     haml:
@@ -158,10 +142,6 @@ module.exports = (grunt) ->
         files: ["#{ baseDirectory }/src/**/*.scss"]
         tasks: ["sass:compile"]
 
-      livescript:
-        files: ["#{ baseDirectory }/src/**/*.ls"]
-        tasks: ["livescript"]
-
       haml:
         files: ["#{ baseDirectory }/src/**/*.haml"]
         tasks: ["haml"]
@@ -188,7 +168,6 @@ module.exports = (grunt) ->
   # -------
   grunt.registerTask 'default', [
     'prepare'
-    'script'
     'server'
   ]
 
@@ -198,20 +177,11 @@ module.exports = (grunt) ->
     'clean'
   ]
 
-  # Script
-  # ------
-  # Compiles scripts through the pipeline; pushing in common.js live-script
-  # and outputting AMD javascript.
-  grunt.registerTask 'script', [
-    'livescript'
-  ]
-
   # Server
   # ------
   grunt.registerTask 'server', [
     'copy:static'
     'symlink:bower'
-    'script'
     'haml'
     'sass'
     'configureProxies:temp'

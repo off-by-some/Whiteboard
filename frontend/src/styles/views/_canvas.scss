@@ -12,11 +12,9 @@ $namespace: 'canvas';
 
 // Title and the welcome screen.
 // -----------------------------
-##{$namespace}, ##{$namespace} .title {
-  @extend .overlay;
-}
-##{$namespace} .title {
+##{$namespace} {
   background: rgba(0,0,0,0.15);
+  @extend .overlay;
 }
 ##{$namespace} .title h1 {
   position: absolute;
@@ -62,4 +60,7 @@ $namespace: 'canvas';
   &:hover span {
     color: $wb-active-text;
   }
+}
+##{$namespace} .menu-selector .menu-items.visible {
+  display: block;
 }

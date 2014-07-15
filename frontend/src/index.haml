@@ -11,7 +11,13 @@
 
     %link{href: '/styles/main.css', rel: 'stylesheet'}/
 
-    %script{data-main: '/scripts/main', src: '/components/cajon/cajon.js'}/
-
   %body
     %header
+
+    %script{src: '/components/jquery/jquery.js'}/
+    %script{src: '/components/moment/moment.js'}/
+    %script{src: '/components/react/react.js'}/
+    %script{src: '/out/goog/base.js'}/
+    %script{src: '/scripts/whiteboard.js'}/
+    %script
+      goog.require('whiteboard.canvas');

@@ -12,3 +12,9 @@
 
 # Ignore the bower components.
 /bower_components
+
+# Emacs stuff.
+*~
+
+# Cljs stuff.
+/target
