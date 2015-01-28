@@ -1,18 +1,3 @@
-# Dot files
-.*
-!.editorconfig
-!.git*
-
-# Python
-/dist
-/build
-*.pyc
-*.pyo
-*.egg*
-
-# Database files
-*.sqlite*
-*.db
-
-
-*.js
+build/atom-shell
+build/node_modules
+bower_components/

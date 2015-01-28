@@ -1,0 +1,140 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/nodejs', '/usr/bin/npm', 'install', '-g', 'grunt-cli' ]
+2 info using npm@1.3.10
+3 info using node@v0.10.25
+4 verbose cache add [ 'grunt-cli', null ]
+5 verbose cache add name=undefined spec="grunt-cli" args=["grunt-cli",null]
+6 verbose parsed url { protocol: null,
+6 verbose parsed url   slashes: null,
+6 verbose parsed url   auth: null,
+6 verbose parsed url   host: null,
+6 verbose parsed url   port: null,
+6 verbose parsed url   hostname: null,
+6 verbose parsed url   hash: null,
+6 verbose parsed url   search: null,
+6 verbose parsed url   query: null,
+6 verbose parsed url   pathname: 'grunt-cli',
+6 verbose parsed url   path: 'grunt-cli',
+6 verbose parsed url   href: 'grunt-cli' }
+7 silly lockFile 671ef8ac-grunt-cli grunt-cli
+8 verbose lock grunt-cli /home/cbridges/.npm/671ef8ac-grunt-cli.lock
+9 silly lockFile 671ef8ac-grunt-cli grunt-cli
+10 silly lockFile 671ef8ac-grunt-cli grunt-cli
+11 verbose addNamed [ 'grunt-cli', '' ]
+12 verbose addNamed [ null, '*' ]
+13 silly lockFile d63f3d0b-grunt-cli grunt-cli@
+14 verbose lock grunt-cli@ /home/cbridges/.npm/d63f3d0b-grunt-cli.lock
+15 silly addNameRange { name: 'grunt-cli', range: '*', hasData: false }
+16 verbose url raw grunt-cli
+17 verbose url resolving [ 'https://registry.npmjs.org/', './grunt-cli' ]
+18 verbose url resolved https://registry.npmjs.org/grunt-cli
+19 info trying registry request attempt 1 at 12:00:57
+20 verbose etag "80ZPY6QMNWZQYRPAUPMKVTA7Y"
+21 http GET https://registry.npmjs.org/grunt-cli
+22 http 200 https://registry.npmjs.org/grunt-cli
+23 silly registry.get cb [ 200,
+23 silly registry.get   { date: 'Wed, 28 Jan 2015 20:00:58 GMT',
+23 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+23 silly registry.get     etag: '"2FFNCC9ZO767JBIMWU6HYD92J"',
+23 silly registry.get     'content-type': 'application/json',
+23 silly registry.get     'cache-control': 'max-age=60',
+23 silly registry.get     'content-length': '20290',
+23 silly registry.get     'accept-ranges': 'bytes',
+23 silly registry.get     via: '1.1 varnish',
+23 silly registry.get     age: '6',
+23 silly registry.get     'x-served-by': 'cache-lax1425-LAX',
+23 silly registry.get     'x-cache': 'HIT',
+23 silly registry.get     'x-cache-hits': '1',
+23 silly registry.get     'x-timer': 'S1422475258.129813,VS0,VE0',
+23 silly registry.get     vary: 'Accept',
+23 silly registry.get     'keep-alive': 'timeout=10, max=50',
+23 silly registry.get     connection: 'Keep-Alive' } ]
+24 silly addNameRange number 2 { name: 'grunt-cli', range: '*', hasData: true }
+25 silly addNameRange versions [ 'grunt-cli',
+25 silly addNameRange   [ '0.1.0',
+25 silly addNameRange     '0.1.1',
+25 silly addNameRange     '0.1.2',
+25 silly addNameRange     '0.1.3',
+25 silly addNameRange     '0.1.4',
+25 silly addNameRange     '0.1.5',
+25 silly addNameRange     '0.1.6',
+25 silly addNameRange     '0.1.7',
+25 silly addNameRange     '0.1.8',
+25 silly addNameRange     '0.1.9',
+25 silly addNameRange     '0.1.10',
+25 silly addNameRange     '0.1.11',
+25 silly addNameRange     '0.1.12',
+25 silly addNameRange     '0.1.13' ] ]
+26 verbose addNamed [ 'grunt-cli', '0.1.13' ]
+27 verbose addNamed [ '0.1.13', '0.1.13' ]
+28 silly lockFile 28997503-grunt-cli-0-1-13 grunt-cli@0.1.13
+29 verbose lock grunt-cli@0.1.13 /home/cbridges/.npm/28997503-grunt-cli-0-1-13.lock
+30 silly lockFile 28997503-grunt-cli-0-1-13 grunt-cli@0.1.13
+31 silly lockFile 28997503-grunt-cli-0-1-13 grunt-cli@0.1.13
+32 silly lockFile d63f3d0b-grunt-cli grunt-cli@
+33 silly lockFile d63f3d0b-grunt-cli grunt-cli@
+34 silly resolved [ { name: 'grunt-cli',
+34 silly resolved     description: 'The grunt command line interface.',
+34 silly resolved     version: '0.1.13',
+34 silly resolved     author: { name: 'Grunt Team' },
+34 silly resolved     homepage: 'http://gruntjs.com/',
+34 silly resolved     repository: { type: 'git', url: 'git://github.com/gruntjs/grunt-cli.git' },
+34 silly resolved     bugs: { url: 'http://github.com/gruntjs/grunt-cli/issues' },
+34 silly resolved     licenses: [ [Object] ],
+34 silly resolved     bin: { grunt: 'bin/grunt' },
+34 silly resolved     engines: { node: '>= 0.8.0' },
+34 silly resolved     scripts: { test: 'node bin/grunt test' },
+34 silly resolved     preferGlobal: true,
+34 silly resolved     dependencies: { nopt: '~1.0.10', 'findup-sync': '~0.1.0', resolve: '~0.3.1' },
+34 silly resolved     devDependencies: { grunt: '~0.4.0', 'grunt-contrib-jshint': '~0.2.0' },
+34 silly resolved     contributors: [ [Object], [Object], [Object], [Object] ],
+34 silly resolved     _id: 'grunt-cli@0.1.13',
+34 silly resolved     dist:
+34 silly resolved      { shasum: 'e9ebc4047631f5012d922770c39378133cad10f4',
+34 silly resolved        tarball: 'http://registry.npmjs.org/grunt-cli/-/grunt-cli-0.1.13.tgz' },
+34 silly resolved     _from: 'grunt-cli@',
+34 silly resolved     _npmVersion: '1.3.24',
+34 silly resolved     _npmUser: { name: 'tkellen', email: 'tyler@sleekcode.net' },
+34 silly resolved     maintainers: [ [Object] ],
+34 silly resolved     directories: {},
+34 silly resolved     _shasum: 'e9ebc4047631f5012d922770c39378133cad10f4',
+34 silly resolved     _resolved: 'https://registry.npmjs.org/grunt-cli/-/grunt-cli-0.1.13.tgz',
+34 silly resolved     readme: 'ERROR: No README data found!' } ]
+35 info install grunt-cli@0.1.13 into /usr/local/lib
+36 info installOne grunt-cli@0.1.13
+37 info /usr/local/lib/node_modules/grunt-cli unbuild
+38 verbose tar unpack /home/cbridges/.npm/grunt-cli/0.1.13/package.tgz
+39 silly lockFile 466968dc-local-lib-node-modules-grunt-cli tar:///usr/local/lib/node_modules/grunt-cli
+40 verbose lock tar:///usr/local/lib/node_modules/grunt-cli /home/cbridges/.npm/466968dc-local-lib-node-modules-grunt-cli.lock
+41 silly lockFile b79bb023-npm-grunt-cli-0-1-13-package-tgz tar:///home/cbridges/.npm/grunt-cli/0.1.13/package.tgz
+42 verbose lock tar:///home/cbridges/.npm/grunt-cli/0.1.13/package.tgz /home/cbridges/.npm/b79bb023-npm-grunt-cli-0-1-13-package-tgz.lock
+43 silly gunzTarPerm modes [ '755', '644' ]
+44 error Error: EACCES, mkdir '/usr/local/lib/node_modules/grunt-cli'
+44 error  { [Error: EACCES, mkdir '/usr/local/lib/node_modules/grunt-cli']
+44 error   errno: 3,
+44 error   code: 'EACCES',
+44 error   path: '/usr/local/lib/node_modules/grunt-cli',
+44 error   fstream_type: 'Directory',
+44 error   fstream_path: '/usr/local/lib/node_modules/grunt-cli',
+44 error   fstream_class: 'DirWriter',
+44 error   fstream_stack:
+44 error    [ '/usr/lib/nodejs/fstream/lib/dir-writer.js:36:23',
+44 error      '/usr/lib/nodejs/mkdirp/index.js:37:53',
+44 error      'Object.oncomplete (fs.js:107:15)' ] }
+45 error Please try running this command again as root/Administrator.
+46 error System Linux 3.13.0-44-generic
+47 error command "/usr/bin/nodejs" "/usr/bin/npm" "install" "-g" "grunt-cli"
+48 error cwd /home/cbridges/programming/hello-atom/build
+49 error node -v v0.10.25
+50 error npm -v 1.3.10
+51 error path /usr/local/lib/node_modules/grunt-cli
+52 error fstream_path /usr/local/lib/node_modules/grunt-cli
+53 error fstream_type Directory
+54 error fstream_class DirWriter
+55 error code EACCES
+56 error errno 3
+57 error stack Error: EACCES, mkdir '/usr/local/lib/node_modules/grunt-cli'
+58 error fstream_stack /usr/lib/nodejs/fstream/lib/dir-writer.js:36:23
+58 error fstream_stack /usr/lib/nodejs/mkdirp/index.js:37:53
+58 error fstream_stack Object.oncomplete (fs.js:107:15)
+59 verbose exit [ 3, true ]

@@ -1,3 +1,5 @@
+window.$ = window.jQuery = require('./utils/jquery');
+
 $( document ).ready(function() {
   $(document).ready(function(){
 
@@ -14,7 +16,7 @@ $( document ).ready(function() {
 
     $('#menu > ul > li > a').click(function() {
       $('#menu li').removeClass('active');
-      $(this).closest('li').addClass('active');	
+      $(this).closest('li').addClass('active');
       var checkElement = $(this).next();
       if((checkElement.is('ul')) && (checkElement.is(':visible'))) {
         $(this).closest('li').removeClass('active');
@@ -27,8 +29,8 @@ $( document ).ready(function() {
       if($(this).closest('li').find('ul').children().length == 0) {
         return true;
       } else {
-        return false;	
-      }	
+        return false;
+      }
     });
 
       // Show/Hide Menu + Switch Captions

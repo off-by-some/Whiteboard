@@ -1,4 +1,34 @@
-Whiteboard
-==========
+To run you should be able to do the following:
 
-Whiteboard is an online drawing application that allows users to draw in real time with other collaboraters
+`./run.sh`
+
+OR on Windows:
+
+`run`
+
+OR manually:
+
+Install grunt if you haven't already
+
+```
+npm install -g grunt-cli
+```
+
+Then run the following to download version 0.12.2 of atom-shell
+```
+cd ./build
+npm install
+grunt download-atom-shell
+```
+
+Then you should be able to run the app:
+
+```
+./build/atom-shell/Atom.app/Contents/MacOS/Atom ./hello-app
+```
+
+OR on Windows:
+
+```
+./build/atom-shell/atom ./hello-app
+```
