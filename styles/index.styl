@@ -1,0 +1,35 @@
+@import "kouto-swiss";
+
+normalize();
+
+@import "./variables.styl"
+
+body,
+html,
+#root {
+  height: 100%;
+}
+
+.content-wrapper {
+  padding-top: 35px;
+  padding-bottom: 35px;
+  padding-left: 40px;
+  padding-right: 40px;
+
+}
+
+body {
+  font-size: 18rem;
+}
+
+:root {
+  font-size: 1px;
+}
+
+a {
+  text-decoration: none;
+}
+
+@import "./components/*.styl"
+@import "./components/**/*.styl"
+//@import "./pages/*.styl"

@@ -1,0 +1,7 @@
+{
+  "presets": ["es2015"],
+  "plugins": [ "transform-class-properties", "transform-react-jsx", "transform-async-to-generator",
+               "transform-decorators",
+               "transform-do-expressions", "transform-object-rest-spread",
+               "transform-regenerator" ]
+}
