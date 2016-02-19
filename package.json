@@ -10,6 +10,7 @@
     "bluebird": "^3.0.5",
     "classnames": "^2.2.1",
     "config": "^1.16.0",
+    "createjs": "0.0.0",
     "fetchival": "^0.3.1",
     "font-awesome": "^4.4.0",
     "history": "^1.13.0",

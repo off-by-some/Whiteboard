@@ -16,7 +16,7 @@
   <!-- Content Security Policy -->
   {% if env == "development" %}
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'unsafe-eval' 'self' http://{{ host + ':' + ports.connect }} http://{{ host + ':' + ports.livereload }} http://{{ host + ':' + ports.webpack }};
+          content="default-src 'unsafe-eval' 'self' https://code.createjs.com/ http://{{ host + ':' + ports.connect }} http://{{ host + ':' + ports.livereload }} http://{{ host + ':' + ports.webpack }};
                    font-src fonts.gstatic.com 'self' http://{{ host + ':' + ports.connect }};
                    child-src 'none';
                    style-src 'self' fonts.googleapis.com http://{{ host + ':' + ports.connect }};
@@ -27,7 +27,7 @@
                    frame-ancestors 'none'">
   {% else %}
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self';
+          content="default-src 'self' https://code.createjs.com/;
                    font-src fonts.gstatic.com 'self';
                    child-src 'none';
                    form-action 'none';
@@ -36,7 +36,7 @@
                    base-uri 'none';
                    frame-ancestors 'none'">
   {% endif %}
-
+  <script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/app.css">
   <link rel="stylesheet" href="assets/vendor.css">
