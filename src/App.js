@@ -21,7 +21,6 @@ function setRectangle(gl, x, y, width, height) {
   // whatever buffer is bound to the `ARRAY_BUFFER` bind point
   // but so far we only have one buffer. If we had more than one
   // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
-
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
      x1, y1,
      x2, y1,
@@ -48,6 +47,12 @@ class App extends Component {
       10, 30,
       80, 20,
       80, 30,
+      10, 30,
+      80, 20,
+      40, 10,
+      50, 30,
+      80, 25,
+      60, 30,
     ];
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
@@ -86,7 +91,7 @@ class App extends Component {
     );
 
     // draw 50 random rectangles in random colors
-    for (var ii = 0; ii < 500; ++ii) {
+    for (var ii = 0; ii < 1000; ++ii) {
       // Setup a random rectangle
       // This will write to positionBuffer because
       // its the last thing we bound on the ARRAY_BUFFER
