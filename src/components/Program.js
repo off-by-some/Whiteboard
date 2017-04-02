@@ -82,7 +82,7 @@ class GLProgram extends React.Component {
 
     if (success) {
       this.setProgramId(programId)
-      console.log(`Successfully compiled Program with name ${this.props.name} and srcId ${programId}`)
+      console.log(`Successfully compiled Program ${programId}`)
       return {[programId]: this.program};
     }
 
