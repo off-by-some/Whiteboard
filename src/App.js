@@ -55,7 +55,6 @@ class App extends Component {
     document.addEventListener("click", () => this.glRender(gl))
 
     this.glRender(gl)
-    debugger;
   }
 
   glRender(gl) {
