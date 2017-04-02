@@ -39,43 +39,49 @@ class App extends Component {
     const gl = canvas.getContext("experimental-webgl");
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(1, 1, 1, 1);
-    // gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     //
     var v = document.getElementById("vertex").firstChild.nodeValue;
     var f = document.getElementById("fragment").firstChild.nodeValue;
 
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
     var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, f);
-    //
+
     const program = createProgram(gl, vertexShader, fragmentShader)
 
     gl.useProgram( program );
 
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
+    this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+
     this.positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
-    // three 2d points
     var positions = [
-      0, 0,
-      0, 0.5,
-      0.7, 0,
+      10, 20,
+      80, 20,
+      10, 30,
+      10, 30,
+      80, 20,
+      80, 30,
     ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-    this.gl = gl
-    this.glRender()
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    this.glRender(gl)
   }
 
-  glRender() {
-    const gl = this.gl;
+  glRender(gl) {
     window.webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enableVertexAttribArray(this.positionAttributeLocation);
+    
     // Bind the position buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+
+    // set the resolution
+    gl.uniform2f(this.resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
     // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
     var size = 2;          // 2 components per iteration
@@ -94,7 +100,7 @@ class App extends Component {
 
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = 3;
+    var count = 6;
     gl.drawArrays(primitiveType, offset, count);
   }
 
