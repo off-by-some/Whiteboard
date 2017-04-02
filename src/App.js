@@ -4,6 +4,7 @@ import Program from "./components/Program";
 import VertexShader from "./components/VertexShader";
 import FragmentShader from "./components/FragmentShader";
 import { Autobind } from "babel-autobind";
+import WebGLRect from "./components/WebGLRect";
 
 // // Returns a random integer from 0 to range - 1.
 function randomInt(range) {
@@ -11,7 +12,7 @@ function randomInt(range) {
 }
 
 // Fills the buffer with the values that define a rectangle.
-function setRectangle(gl, x, y, width, height) {
+function rect(gl, x, y, width, height) {
   var x1 = x;
   var x2 = x + width;
   var y1 = y;
@@ -40,23 +41,7 @@ class App extends Component {
     this.positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
-    var positions = [
-      10, 20,
-      80, 20,
-      10, 30,
-      10, 30,
-      80, 20,
-      80, 30,
-      10, 30,
-      80, 20,
-      40, 10,
-      50, 30,
-      80, 25,
-      60, 30,
-    ];
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
+    // Rerender onClick
     document.addEventListener("click", () => this.glRender(gl))
 
     this.glRender(gl)
@@ -91,12 +76,12 @@ class App extends Component {
     );
 
     // draw 50 random rectangles in random colors
-    for (var ii = 0; ii < 1000; ++ii) {
+    for (var ii = 0; ii < 22; ++ii) {
       // Setup a random rectangle
       // This will write to positionBuffer because
       // its the last thing we bound on the ARRAY_BUFFER
       // bind point
-      setRectangle(
+      rect(
           gl, randomInt(gl.canvas.height), randomInt(gl.canvas.height), randomInt(gl.canvas.height), randomInt(gl.canvas.height));
 
       // Set a random color.
@@ -109,8 +94,39 @@ class App extends Component {
 
   render() {
     return (
-       <WebGLCanvas WebGLDidMount={this.handleWebGLMount}>
+       <WebGLCanvas webGLDidMount={this.handleWebGLMount}>
         <Program name="foobar">
+          <VertexShader>{`
+            attribute vec2 vPosition;
+            uniform vec2 u_resolution;
+            void main(void)
+            {
+              // convert the position from pixels to 0.0 to 1.0
+              vec2 zeroToOne = vPosition / u_resolution;
+
+              // convert from 0->1 to 0->2
+              vec2 zeroToTwo = zeroToOne * 2.0;
+
+              // convert from 0->2 to -1->+1 (clipspace)
+              vec2 clipSpace = zeroToTwo - 1.0;
+
+              // Flip the y clipspace coord to have an API closer to canvas, where the top left is 0,0
+              gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            }`}
+          </VertexShader>
+
+          <FragmentShader>{`
+            precision mediump float;
+            uniform vec4 u_color;
+
+            void main(void)
+            {
+                gl_FragColor = u_color;
+            }`}
+          </FragmentShader>
+        </Program>
+
+        <Program name="baz">
           <VertexShader>{`
             attribute vec2 vPosition;
             uniform vec2 u_resolution;

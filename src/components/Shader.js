@@ -1,5 +1,6 @@
 import React from "react";
 import { Autobind } from "babel-autobind";
+import md5 from "js-md5";
 
 @Autobind
 class Shader extends React.Component {
@@ -11,6 +12,10 @@ class Shader extends React.Component {
   static contextTypes = {
     program: React.PropTypes.object.isRequired,
     gl: React.PropTypes.object.isRequired,
+  }
+
+  _internalId() {
+    return md5(this.props.children)
   }
 
   compileShader(gl) {
@@ -28,7 +33,7 @@ class Shader extends React.Component {
 
     var success = gl.getShaderParameter(this.shader, gl.COMPILE_STATUS);
     if (success) {
-      console.log(`Successfully compiled ${this.props.shaderType} shader`)
+      console.log(`Successfully compiled ${this.props.shaderType} shader ${this._internalId()}`)
       return this.shader;
     }
 

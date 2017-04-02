@@ -3,6 +3,7 @@ import React from "react";
 // import FragmentShader from "./FragmentShader";
 // import VertexShader from "./VertexShader";
 import { Autobind } from "babel-autobind";
+import md5 from "js-md5";
 
 @Autobind
 class GLProgram extends React.Component {
@@ -42,7 +43,17 @@ class GLProgram extends React.Component {
     };
   }
 
+  _internalId() {
+    const { vertex, fragment } = this.registeredShaders;
+    return md5(vertex._internalId() + fragment._internalId())
+  }
+
   compileProgram(gl) {
+    if (this.context.gl.getProgramWithID(this._internalId()) != null) {
+      console.log(`Program ${this._internalId()} already compiled, doing nothing`)
+      return null;
+    }
+
     const { vertex, fragment } = this.registeredShaders;
     const vertexShader = vertex.compileShader(gl)
     const fragmentShader = fragment.compileShader(gl)
@@ -54,8 +65,8 @@ class GLProgram extends React.Component {
     gl.linkProgram(this.program);
     var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
     if (success) {
-      console.log(`Successfully compiled Program with name ${this.props.name}`)
-      return this.program;
+      console.log(`Successfully compiled Program with name ${this.props.name} and srcId ${this._internalId()}`)
+      return {[this._internalId()]: this.program};
     }
 
     // Failed, clean up and log what happened

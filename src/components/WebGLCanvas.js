@@ -11,28 +11,37 @@ class WebGLCanvas extends React.Component {
 
   static propTypes = {
     shadersWillCompile: React.PropTypes.func,
-    WebGLDidMount: React.PropTypes.func,
+    webGLDidMount: React.PropTypes.func,
   }
 
   static defaultProps = {
     shadersWillCompile: x => x,
-    WebGLDidMount: x => x,
+    webGLDidMount: x => x,
   }
 
   constructor() {
-    super()
-    this.programs = {}
+    super();
+
+    this.programInstances = {}
+    this.compiled_programs = {}
+  }
+
+  getProgramWithID(id) {
+    return this.compiled_programs[id]
   }
 
   getChildContext() {
     return {
-      gl: this.gl || {},
+      gl: {
+        context: () => this.gl,
+        getProgramWithID: this.getProgramWithID
+      },
       canvas: {instance: this.canvas, registerProgram: this.registerProgram},
     }
   }
 
   registerProgram(name, program) {
-    this.programs[name] = program;
+    this.programInstances[name] = program;
   }
 
   shouldComponentUpdate() {
@@ -46,14 +55,24 @@ class WebGLCanvas extends React.Component {
     this.gl.clearColor(1, 1, 1, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
+    // Fire our before compilation event
     this.props.shadersWillCompile(this.canvas, this.gl);
+    // Compile the vertex/fragment shaders into programs
+    const compiled_programs = _.filter(
+      _.map(this.programInstances, (v) => {
+        if (v == null) return;
 
-    this.program_list = _.map(this.programs, (v) => v.compileProgram(this.gl));
+        const program =  v.compileProgram(this.gl);
+        _.merge(this.compiled_programs, program);
+        return _.values(program)[0];
+      })
+    );
+
+    const defaultProgram = compiled_programs[0]
 
     // Use the first program by default
-    this.gl.useProgram(this.program_list[0])
-
-    this.props.WebGLDidMount(this.canvas, this.gl, this.program_list[0])
+    this.gl.useProgram(defaultProgram)
+    this.props.webGLDidMount(this.canvas, this.gl, defaultProgram)
   }
 
 
