@@ -5,9 +5,9 @@ import Program from "./Program";
 import { Autobind } from "babel-autobind";
 
 // // Returns a random integer from 0 to range - 1.
-function randomInt(range) {
-  return Math.floor(Math.random() * range);
-}
+// function randomInt(range) {
+//   return Math.floor(Math.random() * range);
+// }
 
 @Autobind
 class WebGLRect extends React.Component {

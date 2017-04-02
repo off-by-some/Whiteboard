@@ -78,10 +78,13 @@ class WebGLCanvas extends React.Component {
   componentDidMount() {
     this.canvas = this.refs.canvas;
     this.gl = this.canvas.getContext("experimental-webgl");
+    window.webglUtils.resizeCanvasToDisplaySize(this.gl.canvas);
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.gl.clearColor(1, 1, 1, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    const program = this.compilePrograms();
+    this.compilePrograms();
+
+
 
     // this.props.webGLDidMount(this.canvas, this.gl, program)
     // Run each GL component's webGLDidMount
@@ -99,7 +102,6 @@ class WebGLCanvas extends React.Component {
   render() {
     return (
       <canvas
-          {..._.omit(this.props, _.keys(WebGLCanvas.propTypes))}
           id="mycanvas"
           ref="canvas"
       >
@@ -110,44 +112,3 @@ class WebGLCanvas extends React.Component {
 }
 
 export default WebGLCanvas
-
-
-
-
-
-
-
-
-// <WebGLCanvas>
-//   <Program name="foobar">
-//     <VertexShader>`
-//       attribute vec2 vPosition;
-//       uniform vec2 u_resolution;
-//       void main(void)
-//       {
-//         // convert the position from pixels to 0.0 to 1.0
-//         vec2 zeroToOne = vPosition / u_resolution;
-//
-//         // convert from 0->1 to 0->2
-//         vec2 zeroToTwo = zeroToOne * 2.0;
-//
-//         // convert from 0->2 to -1->+1 (clipspace)
-//         vec2 clipSpace = zeroToTwo - 1.0;
-//
-//         // Flip the y clipspace coord to have an API closer to canvas, where the top left is 0,0
-//         gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-//       }`
-//     </VertexShader>
-//
-//     <FragmentShader>`
-//       precision mediump float;
-//       uniform vec4 u_color;
-//
-//       void main(void)
-//       {
-//           gl_FragColor = u_color;
-//       }`
-//     </FragmentShader>
-//   </Program>
-//
-// </WebGLCanvas>
