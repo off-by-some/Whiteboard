@@ -12,7 +12,7 @@ function randomInt(range) {
 @Autobind
 class WebGLRect extends React.Component {
   static propTypes = {
-    setColor: React.PropTypes.func.isRequired,
+    color: React.PropTypes.array.isRequired,
   }
 
   static contextTypes = {
@@ -30,6 +30,10 @@ class WebGLRect extends React.Component {
         setProgramId: (id) => this.programId = id,
       }
     }
+  }
+
+  shouldComponentUpdate() {
+    return false
   }
 
 
@@ -67,10 +71,10 @@ class WebGLRect extends React.Component {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
     // Rerender onClick
-    document.addEventListener("click", () => this.glRender(canvas, gl, program))
+    document.addEventListener("click", () => this.glRender(canvas, gl, this.props))
   }
 
-  glRender(canvas, gl, program) {
+  glRender(canvas, gl, props) {
     gl.enableVertexAttribArray(this.positionAttributeLocation);
 
     // Bind the position buffer.
@@ -95,13 +99,13 @@ class WebGLRect extends React.Component {
     );
 
     this.rect(gl,
-      this.props.x,
-      this.props.y,
-      this.props.width,
-      this.props.height,
+      props.x,
+      props.y,
+      props.width,
+      props.height,
     );
 
-    const [r, g, b, a] = this.props.setColor()
+    const [r, g, b, a] = this.props.color
 
     // Set a random color.
     gl.uniform4f(this.colorUniformLocation, r, g, b, a);

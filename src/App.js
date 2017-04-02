@@ -37,13 +37,13 @@ class App extends Component {
 
   render() {
     return (
-       <WebGLCanvas webGLDidMount={this.handleWebGLMount}>
+       <WebGLCanvas>
          <WebGLRect
            x={0}
            y={0}
            width={20}
            height={20}
-           setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+           color={[Math.random(), Math.random(), Math.random(), 1]}
           />
 
           <WebGLRect
@@ -51,7 +51,7 @@ class App extends Component {
             y={10}
             width={20}
             height={20}
-            setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+            color={[Math.random(), Math.random(), Math.random(), 1]}
            />
 
            <WebGLRect
@@ -59,7 +59,7 @@ class App extends Component {
              y={20}
              width={20}
              height={20}
-             setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+             color={[Math.random(), Math.random(), Math.random(), 1]}
             />
 
           <WebGLRect
@@ -67,7 +67,7 @@ class App extends Component {
             y={40}
             width={20}
             height={20}
-            setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+            color={[Math.random(), Math.random(), Math.random(), 1]}
            />
 
            <WebGLRect
@@ -75,7 +75,7 @@ class App extends Component {
              y={30}
              width={20}
              height={20}
-             setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+             color={[Math.random(), Math.random(), Math.random(), 1]}
             />
 
             <WebGLRect
@@ -83,10 +83,8 @@ class App extends Component {
               y={50}
               width={20}
               height={20}
-              setColor={() => [Math.random(), Math.random(), Math.random(), 1]}
+              color={[Math.random(), Math.random(), Math.random(), 1]}
              />
-
-
       </WebGLCanvas>
     );
   }

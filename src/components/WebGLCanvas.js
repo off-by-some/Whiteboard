@@ -90,10 +90,11 @@ class WebGLCanvas extends React.Component {
       const programId = instance.programId;
       const programInstance = this.compiled_programs[programId];
 
-      
+
 
       this.gl.useProgram(program);
       instance.webGLDidMount(this.canvas, this.gl, programInstance)
+      instance.glRender(this.canvas, this.gl, instance.props)
     })
   }
 
