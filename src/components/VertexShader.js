@@ -1,0 +1,12 @@
+import React from "react";
+import Shader from "./Shader";
+
+export default class VertexShader extends React.Component {
+  static propTypes = {
+    children: React.PropTypes.string.isRequired,
+  };
+
+  render () {
+    return <Shader shaderType="vertex">{this.props.children}</Shader>
+  }
+}
