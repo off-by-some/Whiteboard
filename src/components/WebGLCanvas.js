@@ -77,11 +77,16 @@ class WebGLCanvas extends React.Component {
 
   componentDidMount() {
     this.canvas = this.refs.canvas;
-    this.gl = this.canvas.getContext("experimental-webgl");
+    this.gl = this.canvas.getContext("webgl", {
+      premultipliedAlpha: false
+    });
     window.webglUtils.resizeCanvasToDisplaySize(this.gl.canvas);
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.gl.clearColor(1, 1, 1, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendEquation(this.gl.FUNC_ADD);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
     this.compilePrograms();
 
 
