@@ -4,13 +4,8 @@ import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
 
-// // Returns a random integer from 0 to range - 1.
-function randomInt(range) {
-  return Math.floor(Math.random() * range);
-}
-
 @Autobind
-class WebGLRect extends React.Component {
+class WebGLCircle extends React.Component {
   static propTypes = {
     color: React.PropTypes.array.isRequired,
     x: React.PropTypes.number.isRequired,
@@ -149,4 +144,4 @@ class WebGLRect extends React.Component {
   }
 }
 
-export default WebGLRect
+export default WebGLCircle
