@@ -22,8 +22,9 @@ class WebGLCanvas extends React.Component {
   constructor() {
     super();
 
-    this.programInstances = {}
+    this.programInstances = []
     this.compiled_programs = {}
+    this.glComponents = []
   }
 
   getProgramWithID(id) {
@@ -34,29 +35,30 @@ class WebGLCanvas extends React.Component {
     return {
       gl: {
         context: () => this.gl,
-        getProgramWithID: this.getProgramWithID
+        getProgramWithID: this.getProgramWithID,
+        registerComponent: this.registerGLComponent,
+        registerProgram: this.registerProgram,
       },
-      canvas: {instance: this.canvas, registerProgram: this.registerProgram},
+      canvas: { instance: () => this.canvas },
     }
   }
 
   registerProgram(name, program) {
-    this.programInstances[name] = program;
+    this.programInstances.push(program)
+  }
+
+  registerGLComponent(component) {
+    this.glComponents.push(component)
   }
 
   shouldComponentUpdate() {
     return false;
   }
 
-  componentDidMount() {
-    this.canvas = this.refs.canvas;
-    this.gl = this.canvas.getContext("experimental-webgl");
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    this.gl.clearColor(1, 1, 1, 1);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-
+  compilePrograms() {
     // Fire our before compilation event
     this.props.shadersWillCompile(this.canvas, this.gl);
+
     // Compile the vertex/fragment shaders into programs
     const compiled_programs = _.filter(
       _.map(this.programInstances, (v) => {
@@ -68,11 +70,31 @@ class WebGLCanvas extends React.Component {
       })
     );
 
-    const defaultProgram = compiled_programs[0]
-
     // Use the first program by default
-    this.gl.useProgram(defaultProgram)
-    this.props.webGLDidMount(this.canvas, this.gl, defaultProgram)
+    const defaultProgram = compiled_programs[0]
+    return defaultProgram;
+  }
+
+  componentDidMount() {
+    this.canvas = this.refs.canvas;
+    this.gl = this.canvas.getContext("experimental-webgl");
+    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    this.gl.clearColor(1, 1, 1, 1);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    const program = this.compilePrograms();
+
+    // this.props.webGLDidMount(this.canvas, this.gl, program)
+
+    // Run each GL component's webGLDidMount
+    _.map(this.glComponents, instance => {
+      const programId = instance.programId;
+      const programInstance = this.compiled_programs[programId];
+
+      
+
+      this.gl.useProgram(program);
+      instance.webGLDidMount(this.canvas, this.gl, programInstance)
+    })
   }
 
 

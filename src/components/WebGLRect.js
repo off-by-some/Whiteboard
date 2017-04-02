@@ -11,9 +11,33 @@ function randomInt(range) {
 
 @Autobind
 class WebGLRect extends React.Component {
+  static propTypes = {
+    setColor: React.PropTypes.func.isRequired,
+  }
+
   static contextTypes = {
     gl: React.PropTypes.object.isRequired,
   }
+
+  // TODO: TURN INTO DECORATOR ========================================================================================
+  static childContextTypes = {
+    glComponent: React.PropTypes.object,
+  }
+
+  getChildContext() {
+    return {
+      glComponent: {
+        setProgramId: (id) => this.programId = id,
+      }
+    }
+  }
+
+
+  componentWillMount() {
+    this.context.gl.registerComponent(this);
+  }
+
+  // END DECORATOR ====================================================================================================
 
   // Fills the buffer with the values that define a rectangle.
   rect(gl, x, y, width, height) {
@@ -43,7 +67,7 @@ class WebGLRect extends React.Component {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
     // Rerender onClick
-    document.addEventListener("click", () => this.glRender(gl))
+    document.addEventListener("click", () => this.glRender(canvas, gl, program))
   }
 
   glRender(canvas, gl, program) {
@@ -71,15 +95,16 @@ class WebGLRect extends React.Component {
     );
 
     this.rect(gl,
-      randomInt(gl.canvas.height),
-      randomInt(gl.canvas.height),
-      randomInt(gl.canvas.height),
-      randomInt(gl.canvas.height)
+      this.props.x,
+      this.props.y,
+      this.props.width,
+      this.props.height,
     );
 
-    // Set a random color.
-    gl.uniform4f(this.colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
+    const [r, g, b, a] = this.props.setColor()
 
+    // Set a random color.
+    gl.uniform4f(this.colorUniformLocation, r, g, b, a);
     // Draw the rectangle.
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }

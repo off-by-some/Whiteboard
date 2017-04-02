@@ -19,6 +19,7 @@ class GLProgram extends React.Component {
   static contextTypes = {
     gl: React.PropTypes.object.isRequired,
     canvas: React.PropTypes.object.isRequired,
+    glComponent: React.PropTypes.object,
   }
 
   static childContextTypes = {
@@ -48,10 +49,21 @@ class GLProgram extends React.Component {
     return md5(vertex._internalId() + fragment._internalId())
   }
 
+  setProgramId(programId) {
+    // Register our program id with our GLComponent
+    if (this.context.glComponent) {
+      this.context.glComponent.setProgramId(programId)
+    }
+  }
+
   compileProgram(gl) {
-    if (this.context.gl.getProgramWithID(this._internalId()) != null) {
-      console.log(`Program ${this._internalId()} already compiled, doing nothing`)
-      return null;
+    const programId = this._internalId()
+    const cachedProgram = this.context.gl.getProgramWithID(programId);
+
+    if (cachedProgram != null) {
+      this.setProgramId(programId);
+      console.log(`Program ${programId} already compiled, doing nothing`)
+      return { [programId]: cachedProgram };
     }
 
     const { vertex, fragment } = this.registeredShaders;
@@ -64,9 +76,14 @@ class GLProgram extends React.Component {
     gl.attachShader(this.program, fragmentShader);
     gl.linkProgram(this.program);
     var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
+
+    // Register our program id with our GLComponent
+
+
     if (success) {
-      console.log(`Successfully compiled Program with name ${this.props.name} and srcId ${this._internalId()}`)
-      return {[this._internalId()]: this.program};
+      this.setProgramId(programId)
+      console.log(`Successfully compiled Program with name ${this.props.name} and srcId ${programId}`)
+      return {[programId]: this.program};
     }
 
     // Failed, clean up and log what happened
@@ -79,7 +96,7 @@ class GLProgram extends React.Component {
   }
 
   componentDidMount() {
-    this.context.canvas.registerProgram(this.props.name, this)
+    this.context.gl.registerProgram(this.props.name, this)
   }
 
   deleteProgram() {
