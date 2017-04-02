@@ -89,8 +89,6 @@ class WebGLCanvas extends React.Component {
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
     this.compilePrograms();
 
-
-
     // this.props.webGLDidMount(this.canvas, this.gl, program)
     // Run each GL component's webGLDidMount
     _.map(this.glComponents, instance => {
@@ -99,6 +97,14 @@ class WebGLCanvas extends React.Component {
 
       this.gl.useProgram(programInstance);
       instance.webGLDidMount(this.canvas, this.gl, programInstance)
+
+      // Always supply glRender with the right program context
+      const decoratedGlRender = instance.glRender
+      instance.glRender = (...args) => {
+        this.gl.useProgram(programInstance);
+        decoratedGlRender(...args)
+      }
+
       instance.glRender(this.canvas, this.gl, instance.props)
     })
   }
