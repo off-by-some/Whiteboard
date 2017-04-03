@@ -2,6 +2,10 @@
 
 
 Example WebGL API:
+
+![img](http://i.imgur.com/Tzyft1m.png)
+
+
 ```
 <WebGLCanvas>
     <WebGLCircle
