@@ -1,6 +1,7 @@
 import React from "react";
 import { Autobind } from "babel-autobind";
-import md5 from "js-md5";
+import ProgramStore from "../stores/programs";
+import ShaderService from "../services/shaders";
 
 @Autobind
 class Shader extends React.Component {
@@ -10,64 +11,22 @@ class Shader extends React.Component {
   };
 
   static contextTypes = {
-    program: React.PropTypes.object.isRequired,
-    gl: React.PropTypes.object.isRequired,
+    glProgram: React.PropTypes.object.isRequired,
   }
 
-  _internalId() {
-    return md5(this.props.children)
-  }
-
-  compileShader(gl) {
-    const typeMap = {
-      "vertex": gl.VERTEX_SHADER,
-      "fragment": gl.FRAGMENT_SHADER,
-    };
-
-    const type = typeMap[this.props.shaderType];
-
-    this.shader = gl.createShader(type);
-
-    gl.shaderSource(this.shader, this.props.children);
-    gl.compileShader(this.shader);
-
-    var success = gl.getShaderParameter(this.shader, gl.COMPILE_STATUS);
-    if (success) {
-      console.log(`Successfully compiled ${this.props.shaderType} shader ${this._internalId()}`)
-      return this.shader;
-    }
-
-    // Failed, clean up and log what happened
-    console.log(gl.getShaderInfoLog(this.shader));
-    gl.deleteShader(this.shader);
-    this.shader = undefined;
-  }
-
-  registerShader() {
-    this.context.program.pushShader(this, this.props.shaderType);
-  }
-
-  deleteShader() {
-    // If the shader failed to load, it's already been cleaned up
-    if (this.shader == null) return;
-
-    this.context.program.popShader(this, this.props.shaderType);
-    this.context.gl.deleteShader(this.shader);
-    this.shader = undefined;
+  shouldComponentUpdate() {
+    return false;
   }
 
   componentWillMount() {
-    this.registerShader()
-  }
-
-  componentWillUnmount() {
-    this.deleteShader();
+    const shader = ShaderService.create(this.props.shaderType, this.props.children);
+    // Register this shader with our program
+    this.context.glProgram.registerShader(shader);
   }
 
   render() {
     return null
   }
 }
-
 
 export default Shader;

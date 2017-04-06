@@ -49,8 +49,10 @@
   },
   "dependencies": {
     "babel-autobind": "^0.3.4",
+    "enzyme": "^2.8.0",
     "install": "^0.8.8",
     "js-md5": "^0.4.2",
+    "mobx": "^3.1.8",
     "npm": "^4.4.4",
     "react": "^15.4.2",
     "react-dom": "^15.4.2"
