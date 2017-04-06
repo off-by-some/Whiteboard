@@ -12,7 +12,7 @@ class App extends Component {
   render() {
 
     return (
-      <Program>
+      <WebGLCanvas>
         <Program>
           <VertexShader>{`
             attribute vec2 vPosition;
@@ -50,7 +50,7 @@ class App extends Component {
             }`}
           </FragmentShader>
         </Program>
-      </Program>
+      </WebGLCanvas>
     );
   }
 }

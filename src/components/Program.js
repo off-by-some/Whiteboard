@@ -31,7 +31,6 @@ class GLProgram extends React.Component {
     ProgramStore.pushShader(shader);
 
     this.shaders[shader.type] = shader;
-    debugger;
     if (this.shaders.vertex && this.shaders.fragment) {
       const program = ProgramService.create(this.shaders.vertex, this.shaders.fragment);
       ProgramStore.pushProgram(program);
