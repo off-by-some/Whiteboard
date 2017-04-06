@@ -26,9 +26,37 @@ class Canvas extends React.Component {
 
 @Autobind
 class WebGLCanvas extends React.Component {
+  static childContextTypes = {
+    glCanvas: React.PropTypes.object
+  }
+
+  constructor() {
+    super();
+
+    this.resolves = [];
+  }
+
+  getChildContext() {
+    return {
+      glCanvas: { get: this.getCanvas }
+    }
+  }
+
+  // Returns a promise with the canvas
+  getCanvas() {
+    if (this.canvas) return new Promise((resolve) => resolve({ canvas: this.canvas, gl: this.gl }));
+
+    let resolve;
+    const prom = new Promise((r) => {
+      resolve = r;
+    });
+
+    this.resolves.push(resolve);
+    return prom;
+  }
+
   handleCanvasLoad(canvas) {
     this.canvas = canvas;
-
     this.gl = this.canvas.getContext("webgl", {
       premultipliedAlpha: false
     });
@@ -40,6 +68,10 @@ class WebGLCanvas extends React.Component {
     this.gl.enable(this.gl.BLEND);
     this.gl.blendEquation(this.gl.FUNC_ADD);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+    for (const resolve of this.resolves) {
+      resolve({ canvas: this.canvas, gl: this.gl });
+    }
   }
 
 

@@ -16,29 +16,22 @@ class WebGLRect extends React.Component {
   }
 
   static contextTypes = {
-    gl: React.PropTypes.object.isRequired,
+    glCanvas: React.PropTypes.object.isRequired,
   }
 
   // TODO: TURN INTO DECORATOR ========================================================================================
-  static childContextTypes = {
-    glComponent: React.PropTypes.object,
-  }
-
-  getChildContext() {
-    return {
-      glComponent: {
-        setProgramId: (id) => this.programId = id,
-      }
-    }
-  }
 
   shouldComponentUpdate() {
     return false
   }
 
-
   componentWillMount() {
-    this.context.gl.registerComponent(this);
+    this.context.glCanvas.get().then((res) => {
+      this.canvas = res.canvas;
+      this.gl = res.gl;
+
+      this.glRender(res.canvas, res.gl, this.props)
+    });
   }
 
   // END DECORATOR ====================================================================================================

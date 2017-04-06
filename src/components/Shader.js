@@ -20,6 +20,7 @@ class Shader extends React.Component {
 
   componentWillMount() {
     const shader = ShaderService.create(this.props.shaderType, this.props.children);
+    
     // Register this shader with our program
     this.context.glProgram.registerShader(shader);
   }

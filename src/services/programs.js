@@ -11,7 +11,7 @@ class ProgramService {
 
     if (fragmentShader.type !== "fragment") {
       throw new Error(
-        `Expected a fragment shader as the first parameter, got type ${vertexShader.type}
+        `Expected a fragment shader as the second parameter, got type ${vertexShader.type}
       `);
     }
 
