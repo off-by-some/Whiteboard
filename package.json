@@ -62,6 +62,7 @@
     "react-noop-renderer": "^0.0.0"
   },
   "scripts": {
+    "postinstall": "sh ./scripts/patch-react.sh",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom"
