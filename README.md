@@ -49,8 +49,8 @@ Example WebGL API:
 </WebGLCanvas>
 ```
 
-### Running the app:
-`$ yarn`
+### Provisioning and Running the app:
+`$ yarn && yarn start`
 
 ### Running tests (enzyme's a bit borked right now with react-fiber):
 `$ yarn test`
