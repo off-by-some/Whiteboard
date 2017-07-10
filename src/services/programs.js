@@ -2,7 +2,7 @@ import generateId from "../lib/id";
 import ShaderService from "./shaders";
 
 class ProgramService {
-  create(vertexShader, fragmentShader) {
+  static create(vertexShader, fragmentShader) {
     if (vertexShader.type !== "vertex") {
       throw new Error(
         `Expected a vertex shader as the first parameter, got type ${vertexShader.type}
@@ -19,7 +19,7 @@ class ProgramService {
     return { vertexShader, fragmentShader, id };
   }
 
-  compile(gl, programObj) {
+  static compile(gl, programObj) {
     const { vertex, fragment } = programObj;
     const fragmentShader = ShaderService.compile(gl, fragment);
     const vertexShader = ShaderService.compile(gl, vertex);
@@ -41,4 +41,4 @@ class ProgramService {
   }
 }
 
-export default new ProgramService();
+export default ProgramService;

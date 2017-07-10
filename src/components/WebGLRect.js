@@ -3,6 +3,7 @@ import VertexShader from "./VertexShader";
 import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
+import PropTypes from "prop-types";
 
 // // Returns a random integer from 0 to range - 1.
 // function randomInt(range) {
@@ -12,11 +13,11 @@ import { Autobind } from "babel-autobind";
 @Autobind
 class WebGLRect extends React.Component {
   static propTypes = {
-    color: React.PropTypes.array.isRequired,
+    color: PropTypes.array.isRequired,
   }
 
   static contextTypes = {
-    glCanvas: React.PropTypes.object.isRequired,
+    glCanvas: PropTypes.object.isRequired,
   }
 
   // TODO: TURN INTO DECORATOR ========================================================================================

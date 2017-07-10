@@ -1,10 +1,11 @@
 import _ from "lodash"
 import React from "react"
+import PropTypes from "prop-types";
 import { Autobind } from "babel-autobind"
 
 class Canvas extends React.Component {
   static propTypes = {
-    onCanvasLoad: React.PropTypes.func,
+    onCanvasLoad: PropTypes.func,
   }
 
   static defaultProps = {
@@ -27,7 +28,7 @@ class Canvas extends React.Component {
 @Autobind
 class WebGLCanvas extends React.Component {
   static childContextTypes = {
-    glCanvas: React.PropTypes.object
+    glCanvas: PropTypes.object
   }
 
   constructor() {

@@ -1,21 +1,22 @@
 import _ from "lodash";
 import React from "react";
 import { Autobind } from "babel-autobind";
+import PropTypes from "prop-types";
 import ProgramStore from "../stores/programs";
 import ProgramService from "../services/programs";
 
 @Autobind
 class GLProgram extends React.Component {
   static propTypes = {
-    // children: React.PropTypes.arrayOf(
-    //   React.PropTypes.oneOfType([
-    //   React.PropTypes.instanceOf(FragmentShader),
-    //   React.PropTypes.instanceOf(VertexShader),
+    // children: PropTypes.arrayOf(
+    //   PropTypes.oneOfType([
+    //   PropTypes.instanceOf(FragmentShader),
+    //   PropTypes.instanceOf(VertexShader),
     // ])),
   }
 
   static childContextTypes = {
-    glProgram: React.PropTypes.object,
+    glProgram: PropTypes.object,
   }
 
   constructor() {

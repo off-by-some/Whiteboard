@@ -1,17 +1,18 @@
 import React from "react";
 import { Autobind } from "babel-autobind";
+import PropTypes from "prop-types";
 import ProgramStore from "../stores/programs";
 import ShaderService from "../services/shaders";
 
 @Autobind
 class Shader extends React.Component {
   static propTypes = {
-    children: React.PropTypes.string.isRequired,
-    shaderType: React.PropTypes.oneOf(["vertex", "fragment"]),
+    children: PropTypes.string.isRequired,
+    shaderType: PropTypes.oneOf(["vertex", "fragment"]),
   };
 
   static contextTypes = {
-    glProgram: React.PropTypes.object.isRequired,
+    glProgram: PropTypes.object.isRequired,
   }
 
   shouldComponentUpdate() {
@@ -20,7 +21,7 @@ class Shader extends React.Component {
 
   componentWillMount() {
     const shader = ShaderService.create(this.props.shaderType, this.props.children);
-    
+
     // Register this shader with our program
     this.context.glProgram.registerShader(shader);
   }

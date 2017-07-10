@@ -49,13 +49,14 @@
   },
   "dependencies": {
     "babel-autobind": "^0.3.4",
-    "enzyme": "^2.8.0",
+    "enzyme": "^2.9.1",
     "install": "^0.8.8",
     "js-md5": "^0.4.2",
     "mobx": "^3.1.8",
     "npm": "^4.4.4",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "raf": "^3.3.2",
+    "react": "^16.0.0-alpha",
+    "react-dom": "^16.0.0-alpha"
   },
   "scripts": {
     "start": "node scripts/start.js",

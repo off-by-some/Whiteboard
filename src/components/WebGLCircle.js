@@ -3,23 +3,24 @@ import VertexShader from "./VertexShader";
 import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
+import PropTypes from "prop-types";
 
 @Autobind
 class WebGLCircle extends React.Component {
   static propTypes = {
-    color: React.PropTypes.array.isRequired,
-    x: React.PropTypes.number.isRequired,
-    y: React.PropTypes.number.isRequired,
-    radius: React.PropTypes.number.isRequired,
+    color: PropTypes.array.isRequired,
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+    radius: PropTypes.number.isRequired,
   }
 
   static contextTypes = {
-    gl: React.PropTypes.object.isRequired,
+    gl: PropTypes.object.isRequired,
   }
 
   // TODO: TURN INTO DECORATOR ========================================================================================
   static childContextTypes = {
-    glComponent: React.PropTypes.object,
+    glComponent: PropTypes.object,
   }
 
   getChildContext() {
