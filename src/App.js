@@ -4,7 +4,6 @@ import { Autobind } from "babel-autobind";
 import WebGLRect from "./components/WebGLRect";
 import WebGLCircle from "./components/WebGLCircle";
 
-
 @Autobind
 class App extends Component {
   render() {

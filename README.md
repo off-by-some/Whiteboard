@@ -1,10 +1,8 @@
-# Whiteboard ala WebGL
-
+# A collaborative Whiteboard powered by WebGL + react-fiber
 
 Example WebGL API:
 
 ![img](http://i.imgur.com/Tzyft1m.png)
-
 
 ```
 <WebGLCanvas>
@@ -50,3 +48,9 @@ Example WebGL API:
     />
 </WebGLCanvas>
 ```
+
+### Running the app:
+`$ yarn`
+
+### Running tests (enzyme's a bit borked right now with react-fiber):
+`$ yarn test`
