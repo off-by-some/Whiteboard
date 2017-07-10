@@ -39,7 +39,9 @@
     "object-assign": "4.1.1",
     "postcss-loader": "1.2.2",
     "promise": "7.1.1",
+    "react-addons-test-utils": "^15.6.0",
     "react-dev-utils": "^0.5.2",
+    "react-test-renderer": "^15.6.1",
     "style-loader": "0.13.1",
     "url-loader": "0.5.7",
     "webpack": "1.14.0",
@@ -55,9 +57,8 @@
     "mobx": "^3.1.8",
     "npm": "^4.4.4",
     "raf": "^3.3.2",
-    "react": "^16.0.0-alpha",
-    "react-dom": "^16.0.0-alpha",
-    "testdouble": "^3.2.2"
+    "react": "^16.0.0-alpha.13",
+    "react-dom": "^15.6.1"
   },
   "scripts": {
     "start": "node scripts/start.js",

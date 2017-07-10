@@ -28,7 +28,7 @@ class ShaderService {
     gl.compileShader(shader);
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
-      console.log(`Successfully compiled shader ${generateId(this.props.children)}`)
+      console.log(`Successfully compiled shader ${generateId(source)}`)
       return shader;
     }
 
