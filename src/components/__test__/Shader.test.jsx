@@ -13,6 +13,7 @@ const shaderSource = `
   attribute vec2 vPosition;
   uniform vec2 u_resolution;
   uniform float u_radius;
+  
 
   void main(void)
   {

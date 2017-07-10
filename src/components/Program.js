@@ -4,6 +4,7 @@ import { Autobind } from "babel-autobind";
 import PropTypes from "prop-types";
 import ProgramStore from "../stores/programs";
 import ProgramService from "../services/programs";
+// import NoopRenderer from "react-noop-renderer";
 
 @Autobind
 class GLProgram extends React.Component {
@@ -13,6 +14,10 @@ class GLProgram extends React.Component {
     //   PropTypes.instanceOf(FragmentShader),
     //   PropTypes.instanceOf(VertexShader),
     // ])),
+  }
+
+  static contextTypes = {
+    glComponent: PropTypes.object.isRequired,
   }
 
   static childContextTypes = {
@@ -35,6 +40,7 @@ class GLProgram extends React.Component {
     if (this.shaders.vertex && this.shaders.fragment) {
       const program = ProgramService.create(this.shaders.vertex, this.shaders.fragment);
       ProgramStore.pushProgram(program);
+      this.context.glComponent.registerProgram(program.id)
     }
   }
 
@@ -46,9 +52,7 @@ class GLProgram extends React.Component {
 
 
   render() {
-    return (
-      <div>{this.props.children}</div>
-    )
+    return <div style={{display: "none"}}>{this.props.children}</div>;
   }
 }
 

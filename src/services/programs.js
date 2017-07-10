@@ -20,7 +20,8 @@ class ProgramService {
   }
 
   static compile(gl, programObj) {
-    const { vertex, fragment } = programObj;
+    const vertex = programObj.vertexShader;
+    const fragment = programObj.fragmentShader;
     const fragmentShader = ShaderService.compile(gl, fragment);
     const vertexShader = ShaderService.compile(gl, vertex);
     const program = gl.createProgram();

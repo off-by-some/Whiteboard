@@ -8,7 +8,6 @@ import {
   type as fType
 } from "../__mocks__/fragment-shader";
 
-
 import id from "../../lib/id";
 import ShaderService from '../shaders';
 import createGl from "../__mocks__/gl";
@@ -43,18 +42,5 @@ describe("Services: Programs", () => {
       expect(gl.compileShader).toHaveBeenCalled()
       expect(gl.getShaderParameter).toHaveBeenCalled()
     });
-    //
-    // it("#compile should throw an error if compilation failed", () => {
-    //   const programObj = ProgramService.create(vertexShader, fragmentShader)
-    //
-    //   // Failed compilation
-    //   gl.getProgramParameter = jest.fn(() => false);
-    //   expect(() => ProgramService.compile(gl, programObj)).toThrow();
-    //   expect(spy).toHaveBeenCalled()
-    //   expect(gl.createProgram).toHaveBeenCalled()
-    //   expect(gl.attachShader).toHaveBeenCalled()
-    //   expect(gl.linkProgram).toHaveBeenCalled()
-    //   expect(gl.getProgramParameter).toHaveBeenCalled()
-    // });
   })
 });

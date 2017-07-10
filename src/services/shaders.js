@@ -24,7 +24,7 @@ class ShaderService {
         `compileShader expected a shaderType of "vertex" or "fragment", got ${type}`
     );
 
-    gl.shaderSource(source);
+    gl.shaderSource(shader, source);
     gl.compileShader(shader);
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {

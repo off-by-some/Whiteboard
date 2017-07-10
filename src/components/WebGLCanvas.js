@@ -70,6 +70,7 @@ class WebGLCanvas extends React.Component {
     this.gl.blendEquation(this.gl.FUNC_ADD);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
+    // Load any components waiting to render
     for (const resolve of this.resolves) {
       resolve({ canvas: this.canvas, gl: this.gl });
     }

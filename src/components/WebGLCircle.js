@@ -4,6 +4,9 @@ import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
 import PropTypes from "prop-types";
+import ProgramStore from "../stores/programs";
+import ProgramService from "../services/programs";
+// import NoopRenderer from "react-noop-renderer";
 
 @Autobind
 class WebGLCircle extends React.Component {
@@ -14,30 +17,47 @@ class WebGLCircle extends React.Component {
     radius: PropTypes.number.isRequired,
   }
 
+  // TODO: TURN INTO DECORATOR ========================================================================================
   static contextTypes = {
-    gl: PropTypes.object.isRequired,
+    glCanvas: PropTypes.object.isRequired,
   }
 
-  // TODO: TURN INTO DECORATOR ========================================================================================
   static childContextTypes = {
-    glComponent: PropTypes.object,
+    glComponent: PropTypes.object.isRequired
   }
 
   getChildContext() {
     return {
-      glComponent: {
-        setProgramId: (id) => this.programId = id,
-      }
+      glComponent: { registerProgram: this.registerProgram }
     }
+  }
+
+  registerProgram(id) {
+    this.programId = id;
+    if (this.progRs != null) this.progRs.map(x => x(id));
+  }
+
+  getProgramId() {
+    if (this.programId) return new Promise((r) => r(this.programId))
+    if (this.progRs == null) this.progRs = []
+    return new Promise((r) => {
+      this.progRs.push(r);
+    })
   }
 
   shouldComponentUpdate() {
     return false
   }
 
+  async componentWillMount() {
+    const res = await this.context.glCanvas.get()
+    this.canvas = res.canvas;
+    this.gl = res.gl;
 
-  componentWillMount() {
-    this.context.gl.registerComponent(this);
+    const programId = await this.getProgramId()
+    const program = ProgramStore.getProgram(programId)
+    this.webGLDidMount(res.canvas, res.gl, program)
+    this.glRender(res.canvas, res.gl, this.props)
   }
 
   // END DECORATOR ====================================================================================================
@@ -52,7 +72,10 @@ class WebGLCircle extends React.Component {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x, y]), gl.STATIC_DRAW);
   }
 
-  webGLDidMount(canvas, gl, program) {
+  webGLDidMount(canvas, gl, programObj) {
+    const program = ProgramService.compile(this.gl, programObj);
+    gl.useProgram(program)
+
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
     this.colorUniformLocation = gl.getUniformLocation(program, "u_color");
@@ -61,7 +84,10 @@ class WebGLCircle extends React.Component {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
     // Rerender onClick
-    document.addEventListener("click", () => this.glRender(canvas, gl, this.props))
+    document.addEventListener("click", () => {
+      gl.useProgram(program)
+      this.glRender(canvas, gl, this.props)
+    })
   }
 
   glRender(canvas, gl, props) {
@@ -141,7 +167,7 @@ class WebGLCircle extends React.Component {
           }`}
         </FragmentShader>
       </Program>
-    )
+    );
   }
 }
 

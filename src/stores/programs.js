@@ -9,6 +9,7 @@ class ProgramStore {
   programs = observable([]);
   shaders = observable([]);
 
+  getProgram = id => _.filter(this.programs, x => x.id === id)[0]
 
   pushShader = action((shader) => {
     const shaderCompiled = idExists(this.shaders, shader.id);
