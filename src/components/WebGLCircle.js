@@ -4,11 +4,11 @@ import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
 import PropTypes from "prop-types";
-import ProgramStore from "../stores/programs";
 import ProgramService from "../services/programs";
-// import NoopRenderer from "react-noop-renderer";
+import glComponent from "../lib/glComponent";
 
 @Autobind
+@glComponent
 class WebGLCircle extends React.Component {
   static propTypes = {
     color: PropTypes.array.isRequired,
@@ -18,47 +18,47 @@ class WebGLCircle extends React.Component {
   }
 
   // TODO: TURN INTO DECORATOR ========================================================================================
-  static contextTypes = {
-    glCanvas: PropTypes.object.isRequired,
-  }
+  // static contextTypes = {
+  //   glCanvas: PropTypes.object.isRequired,
+  // }
+  //
+  // static childContextTypes = {
+  //   glComponent: PropTypes.object.isRequired
+  // }
+  //
+  // getChildContext() {
+  //   return {
+  //     glComponent: { registerProgram: this.registerProgram }
+  //   }
+  // }
+  //
+  // registerProgram(id) {
+  //   this.programId = id;
+  //   if (this.progRs != null) this.progRs.map(x => x(id));
+  // }
+  //
+  // getProgramId() {
+  //   if (this.programId) return new Promise((r) => r(this.programId))
+  //   if (this.progRs == null) this.progRs = []
+  //   return new Promise((r) => {
+  //     this.progRs.push(r);
+  //   })
+  // }
 
-  static childContextTypes = {
-    glComponent: PropTypes.object.isRequired
-  }
+  // shouldComponentUpdate() {
+  //   return false
+  // }
 
-  getChildContext() {
-    return {
-      glComponent: { registerProgram: this.registerProgram }
-    }
-  }
-
-  registerProgram(id) {
-    this.programId = id;
-    if (this.progRs != null) this.progRs.map(x => x(id));
-  }
-
-  getProgramId() {
-    if (this.programId) return new Promise((r) => r(this.programId))
-    if (this.progRs == null) this.progRs = []
-    return new Promise((r) => {
-      this.progRs.push(r);
-    })
-  }
-
-  shouldComponentUpdate() {
-    return false
-  }
-
-  async componentWillMount() {
-    const res = await this.context.glCanvas.get()
-    this.canvas = res.canvas;
-    this.gl = res.gl;
-
-    const programId = await this.getProgramId()
-    const program = ProgramStore.getProgram(programId)
-    this.webGLDidMount(res.canvas, res.gl, program)
-    this.glRender(res.canvas, res.gl, this.props)
-  }
+  // async componentWillMount() {
+  //   const res = await this.context.glCanvas.get()
+  //   this.canvas = res.canvas;
+  //   this.gl = res.gl;
+  //
+  //   const programId = await this.getProgramId()
+  //   const program = ProgramStore.getProgram(programId)
+  //   this.webGLDidMount(res.canvas, res.gl, program)
+  //   this.glRender(res.canvas, res.gl, this.props)
+  // }
 
   // END DECORATOR ====================================================================================================
 
