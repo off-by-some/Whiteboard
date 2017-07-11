@@ -31,7 +31,7 @@ async function start() {
   const programId = await this.getProgramId()
   const program = ProgramStore.getProgram(programId)
 
-  this.webGLDidMount(res.canvas, res.gl, program)
+  this.glDidMount(res.canvas, res.gl, program)
   this.glRender(res.canvas, res.gl, this.props)
 }
 

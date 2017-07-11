@@ -35,7 +35,7 @@ class WebGLRect extends React.Component {
        x2, y2]), gl.STATIC_DRAW);
   }
 
-  webGLDidMount(canvas, gl, programObj) {
+  glDidMount(canvas, gl, programObj) {
     const program = ProgramService.compile(this.gl, programObj);
     gl.useProgram(program)
 
