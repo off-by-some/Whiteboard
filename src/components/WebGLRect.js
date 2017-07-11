@@ -5,7 +5,6 @@ import FragmentShader from "./FragmentShader";
 import Program from "./Program";
 import { Autobind } from "babel-autobind";
 import PropTypes from "prop-types";
-import ProgramService from "../services/programs";
 import glComponent from "../lib/glComponent";
 
 @Autobind
@@ -35,10 +34,7 @@ class WebGLRect extends React.Component {
        x2, y2]), gl.STATIC_DRAW);
   }
 
-  glDidMount(canvas, gl, programObj) {
-    const program = ProgramService.compile(this.gl, programObj);
-    gl.useProgram(program)
-
+  glDidMount(canvas, gl, program) {
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
     this.colorUniformLocation = gl.getUniformLocation(program, "u_color");

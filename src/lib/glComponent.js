@@ -1,5 +1,7 @@
 import { merge } from "lodash"
 import ProgramStore from "../stores/programs";
+import ProgramService from "../services/programs";
+
 import PropTypes from "prop-types";
 
 function wrapGetChildContext(fn) {
@@ -29,8 +31,9 @@ async function start() {
   this.canvas = res.canvas;
   this.gl = res.gl;
   const programId = await this.getProgramId()
-  const program = ProgramStore.getProgram(programId)
-
+  const programObj = ProgramStore.getProgram(programId)
+  const program = ProgramService.compile(this.gl, programObj);
+  this.gl.useProgram(program)
   this.glDidMount(res.canvas, res.gl, program)
   this.glRender(res.canvas, res.gl, this.props)
 }

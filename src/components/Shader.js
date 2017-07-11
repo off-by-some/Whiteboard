@@ -1,7 +1,6 @@
 import React from "react";
 import { Autobind } from "babel-autobind";
 import PropTypes from "prop-types";
-import ProgramStore from "../stores/programs";
 import ShaderService from "../services/shaders";
 
 @Autobind
