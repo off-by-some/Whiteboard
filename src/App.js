@@ -1,13 +1,15 @@
+import _ from "lodash"
 import React, { Component } from 'react';
 import WebGLCanvas from "./components/WebGLCanvas";
 import { Autobind } from "babel-autobind";
 import WebGLRect from "./components/WebGLRect";
 import WebGLCircle from "./components/WebGLCircle";
+import { unstable_deferredUpdates } from "react-dom";
 
 @Autobind
 class App extends Component {
   state = {
-    counter: 0,
+    circles: [],
   }
 
   constructor() {
@@ -18,51 +20,74 @@ class App extends Component {
     })
   }
 
+  handleClickForCanvas(event) {
+    let totalOffsetX = 0;
+    let totalOffsetY = 0;
+    let canvasX = 0;
+    let canvasY = 0;
+    let currentElement = event.target;
+
+    do {
+        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+    }
+    while(currentElement = currentElement.offsetParent)
+
+    canvasX = event.pageX - totalOffsetX;
+    canvasY = event.pageY - totalOffsetY;
+
+    unstable_deferredUpdates(() => {
+      this.setState({circles: this.state.circles.concat([[canvasX, canvasY]])})
+    })
+
+  }
+
+  handleMouseDown() {
+    this.setState({mouseDown: true})
+  }
+
+  handleMouseUp() {
+    this.setState({mouseDown: false})
+  }
+
+  handleMouseMove(event) {
+    if (!this.state.mouseDown) return;
+
+    let totalOffsetX = 0;
+    let totalOffsetY = 0;
+    let canvasX = 0;
+    let canvasY = 0;
+    let currentElement = event.target;
+
+    do {
+        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+    }
+    while(currentElement = currentElement.offsetParent)
+
+    canvasX = event.pageX - totalOffsetX;
+    canvasY = event.pageY - totalOffsetY;
+
+    this.setState({circles: this.state.circles.concat([[canvasX, canvasY]])})
+  }
+
   render() {
-    const faceColor = [1, 0.85, 0, 1]
-
     return (
-       <WebGLCanvas>
-           <WebGLCircle
-             x={500 + this.state.counter}
-             y={500 + this.state.counter}
-             radius={200 + this.state.counter}
-             color={faceColor}
-           />
-           <WebGLCircle
-             x={500 + this.state.counter}
-             y={500 + this.state.counter}
-             radius={100 + this.state.counter}
-             color={[Math.random(), Math.random(), Math.random(), 1]}
-           />
-           <WebGLCircle
-             x={500 + this.state.counter}
-             y={500 + this.state.counter}
-             radius={90 + this.state.counter}
-             color={faceColor}
-           />
-
-           <WebGLRect
-             x={400 + this.state.counter}
-             y={400 + this.state.counter}
-             height={100 + this.state.counter}
-             width={200 + this.state.counter}
-             radius={90 + this.state.counter}
-             color={faceColor}
-           />
-
-           <WebGLCircle
-             x={450 + this.state.counter}
-             y={450 + this.state.counter}
-             radius={20 + this.state.counter}
-             color={[Math.random(), Math.random(), Math.random(), 1]}
-           />
-           <WebGLCircle
-             x={550 + this.state.counter}
-             y={450 + this.state.counter}
-             radius={20 + this.state.counter}
-             color={[Math.random(), Math.random(), Math.random(), 1]}
-           />
+       <WebGLCanvas
+         onMouseDown={this.handleMouseDown}
+         onMouseUp={this.handleMouseUp}
+         onMouseMove={this.handleMouseMove}
+        >
+          {
+            (_.uniq(this.state.circles)).map(([x, y]) =>
+              <WebGLCircle
+                x={x}
+                y={y}
+                radius={40 * (Math.random()* 10)}
+                color={[Math.random(), Math.random(), Math.random(), 1]}
+              />
+            )
+          }
       </WebGLCanvas>
     );
   }

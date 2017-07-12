@@ -20,6 +20,7 @@ class Canvas extends React.Component {
     return (
       <canvas
            ref="canvas"
+           {...this.props}
       />
     );
   }
@@ -79,7 +80,7 @@ class WebGLCanvas extends React.Component {
 
   render() {
     return [
-      <Canvas onCanvasLoad={this.handleCanvasLoad}/>,
+      <Canvas {...this.props} onCanvasLoad={this.handleCanvasLoad}/>,
       this.props.children
     ];
   }

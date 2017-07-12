@@ -64,7 +64,7 @@ export default function glComponent(target) {
     getChildContext: wrapGetChildContext(oGCC),
     registerProgram: registerProgram,
     getProgramId: getProgramId,
-    shouldComponentUpdate: (() => true),
+    // shouldComponentUpdate: (() => true),
     componentWillMount: start
   }
 
