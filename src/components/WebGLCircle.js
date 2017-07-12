@@ -26,20 +26,15 @@ class WebGLCircle extends React.Component {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x, y]), gl.STATIC_DRAW);
   }
 
-  glDidMount(canvas, gl, program) {
+  glWillMount(canvas, gl, program) {
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
     this.colorUniformLocation = gl.getUniformLocation(program, "u_color");
     this.radiusUniformLocation = gl.getUniformLocation(program, "u_radius");
     this.positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-    // Rerender onClick
-    document.addEventListener("click", () => {
-      gl.useProgram(program)
-      this.glRender(canvas, gl, this.props)
-    })
   }
+
 
   glRender(canvas, gl, props) {
     gl.enableVertexAttribArray(this.positionAttributeLocation);

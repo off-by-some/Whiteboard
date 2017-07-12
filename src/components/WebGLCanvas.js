@@ -45,7 +45,6 @@ class WebGLCanvas extends React.Component {
 
   // Returns a promise with the canvas
   getCanvas() {
-    debugger;
     if (this.canvas) return new Promise((resolve) => resolve({ canvas: this.canvas, gl: this.gl }));
 
     let resolve;
@@ -70,7 +69,7 @@ class WebGLCanvas extends React.Component {
     this.gl.enable(this.gl.BLEND);
     this.gl.blendEquation(this.gl.FUNC_ADD);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-    debugger;
+
     // Load any components waiting to render
     for (const resolve of this.resolves) {
       resolve({ canvas: this.canvas, gl: this.gl });

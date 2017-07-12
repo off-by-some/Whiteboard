@@ -34,18 +34,12 @@ class WebGLRect extends React.Component {
        x2, y2]), gl.STATIC_DRAW);
   }
 
-  glDidMount(canvas, gl, program) {
+  glWillMount(canvas, gl, program) {
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
     this.colorUniformLocation = gl.getUniformLocation(program, "u_color");
     this.positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-    // Rerender onClick
-    document.addEventListener("click", () => {
-      gl.useProgram(program)
-      this.glRender(canvas, gl, this.props)
-    });
   }
 
   glRender(canvas, gl, props) {

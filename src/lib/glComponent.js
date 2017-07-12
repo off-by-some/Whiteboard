@@ -18,12 +18,20 @@ function registerProgram(id) {
 }
 
 function getProgramId() {
-  debugger;
   if (this.programId) return new Promise((r) => r(this.programId))
   if (this.progRs == null) this.progRs = []
   return new Promise((r) => {
     this.progRs.push(r);
   })
+}
+
+function wrapComponentDidUpdate(fn) {
+  console.log("wrapped!")
+  this.gl.useProgram(this.program)
+  this.glRender(this.canvas, this.gl, this.props)
+  if (fn) {
+    return fn()
+  }
 }
 
 async function start() {
@@ -32,11 +40,17 @@ async function start() {
   this.gl = res.gl;
   const programId = await this.getProgramId()
   const programObj = ProgramStore.getProgram(programId)
-  const program = ProgramService.compile(this.gl, programObj);
-  this.gl.useProgram(program)
-  this.glDidMount(res.canvas, res.gl, program)
+  this.program = ProgramService.compile(this.gl, programObj);
+
+  const glDidUpdate = this.glDidUpdate || (x => x)
+  this.glDidUpdate = glDidUpdate.bind(this, this.canvas, this.gl, this.program)
+  this.componentDidUpdate = wrapComponentDidUpdate.bind(this, this.componentDidUpdate)
+
+  this.gl.useProgram(this.program)
+  this.glWillMount(res.canvas, res.gl, this.program)
   this.glRender(res.canvas, res.gl, this.props)
 }
+
 
 export default function glComponent(target) {
   const oCT = target.contextTypes
@@ -50,7 +64,7 @@ export default function glComponent(target) {
     getChildContext: wrapGetChildContext(oGCC),
     registerProgram: registerProgram,
     getProgramId: getProgramId,
-    shouldComponentUpdate: (() => false),
+    shouldComponentUpdate: (() => true),
     componentWillMount: start
   }
 
