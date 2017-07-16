@@ -52,7 +52,7 @@ class GLProgram extends React.Component {
 
 
   render() {
-    return <div style={{display: "none"}}>{this.props.children}</div>;
+    return this.props.children
   }
 }
 

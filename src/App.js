@@ -83,8 +83,8 @@ class App extends Component {
               <WebGLCircle
                 x={x}
                 y={y}
-                radius={40 * (Math.random()* 10)}
-                color={[Math.random(), Math.random(), Math.random(), 1]}
+                radius={4}
+                color={[0, 0, 0, 1]}
               />
             )
           }
