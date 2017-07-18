@@ -10,33 +10,75 @@ import glComponent from "../lib/glComponent";
 @glComponent
 class WebGLCircle extends React.Component {
   static propTypes = {
-    color: PropTypes.array.isRequired,
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-    radius: PropTypes.number.isRequired,
+    colors: PropTypes.array.isRequired,
+    vartices: PropTypes.array.isRequired,
+    radii: PropTypes.array.isRequired,
+  }
+
+  color(gl, colors) {
+
+    // Enable color vertex attribute
+    gl.enableVertexAttribArray(this.colorAttributeLocation);
+
+    // Bind the color buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+
+    // Bind the color buffer data
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+    const size = 4;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.vertexAttribPointer(this.colorAttributeLocation, size, type, normalize, stride, offset);
+  }
+
+  radius(gl, radii) {
+
+    // Enable color vertex attribute
+    gl.enableVertexAttribArray(this.radiusAttributeLocation);
+
+    // Bind the color buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.radiusBuffer);
+
+    // Bind the color buffer data
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(radii), gl.STATIC_DRAW);
+
+    const size = 1;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.vertexAttribPointer(this.radiusAttributeLocation, size, type, normalize, stride, offset);
   }
 
   // Fills the buffer with the values that define a circle.
-  circle(gl, x, y) {
+  circle(gl, vertices) {
 
     // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect
     // whatever buffer is bound to the `ARRAY_BUFFER` bind point
     // but so far we only have one buffer. If we had more than one
     // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x, y]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   }
 
   glWillMount(canvas, gl, program) {
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
+    this.colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+    this.radiusAttributeLocation = gl.getAttribLocation(program, "a_radius");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-    this.colorUniformLocation = gl.getUniformLocation(program, "u_color");
-    this.radiusUniformLocation = gl.getUniformLocation(program, "u_radius");
     this.positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    this.colorBuffer = gl.createBuffer();
+    this.radiusBuffer = gl.createBuffer();
   }
 
-
   glRender(canvas, gl, props) {
+
+    this.radius(gl, props.radii);
+
+    this.color(gl, props.colors);
+
     gl.enableVertexAttribArray(this.positionAttributeLocation);
 
     // Bind the position buffer.
@@ -60,18 +102,10 @@ class WebGLCircle extends React.Component {
       offset
     );
 
-    this.circle(gl, props.x, props.y);
-
-    // Set the radius
-    gl.uniform1f(this.radiusUniformLocation, props.radius);
-
-    const [r, g, b, a] = this.props.color
-
-    // Set a random color.
-    gl.uniform4f(this.colorUniformLocation, r, g, b, a);
+    this.circle(gl, props.vertices);
 
     // Draw the rectangle.
-    gl.drawArrays(gl.POINTS, 0, 1);
+    gl.drawArrays(gl.POINTS, 0, props.vertices.length / 2);
   }
 
   render() {
@@ -80,11 +114,13 @@ class WebGLCircle extends React.Component {
         <VertexShader>{`
           attribute vec2 vPosition;
           uniform vec2 u_resolution;
-          uniform float u_radius;
+          attribute float a_radius;
+          attribute vec4 a_color;
+          varying vec4 v_color;
 
           void main(void)
           {
-            gl_PointSize = u_radius;
+            gl_PointSize = a_radius;
 
             // convert the position from pixels to 0.0 to 1.0
             vec2 zeroToOne = vPosition / u_resolution;
@@ -97,16 +133,19 @@ class WebGLCircle extends React.Component {
 
             // Flip the y clipspace coord to have an API closer to canvas, where the top left is 0,0
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+            // Pipe vertex color to fragment shader
+            v_color = a_color;
           }`}
         </VertexShader>
 
         <FragmentShader>{`
           precision mediump float;
-          uniform vec4 u_color;
+          varying vec4 v_color;
 
           void main(void)
           {
-              gl_FragColor = u_color;
+              gl_FragColor = v_color;
               if (distance(gl_PointCoord, vec2(0.5, 0.5)) > 0.5) {
                 gl_FragColor.a = 0.0;
               }
