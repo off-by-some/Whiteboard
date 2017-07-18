@@ -10,6 +10,7 @@ import { unstable_deferredUpdates } from "react-dom";
 class App extends Component {
   state = {
     circles: [],
+    colors: [],
   }
 
   constructor() {
@@ -37,7 +38,10 @@ class App extends Component {
     canvasY = event.pageY - totalOffsetY;
 
     unstable_deferredUpdates(() => {
-      this.setState({circles: this.state.circles.concat([[canvasX, canvasY]])})
+      this.setState({
+        circles: this.state.circles.concat([[canvasX, canvasY]]),
+        colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]])
+      })
     })
 
   }
@@ -68,7 +72,10 @@ class App extends Component {
     canvasX = event.pageX - totalOffsetX;
     canvasY = event.pageY - totalOffsetY;
 
-    this.setState({circles: this.state.circles.concat([[canvasX, canvasY]])})
+    this.setState({
+      circles: this.state.circles.concat([[canvasX, canvasY]]),
+      colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]])
+    })
   }
 
   render() {
@@ -81,7 +88,7 @@ class App extends Component {
           <WebGLCircle
               vertices={_.flatten(this.state.circles)}
               radius={4}
-              color={[0, 0, 0, 1]}
+              colors={_.flatten(this.state.colors)}
           />
       </WebGLCanvas>
     );
