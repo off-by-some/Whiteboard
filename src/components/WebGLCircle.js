@@ -12,7 +12,7 @@ class WebGLCircle extends React.Component {
   static propTypes = {
     colors: PropTypes.array.isRequired,
     vartices: PropTypes.array.isRequired,
-    radius: PropTypes.number.isRequired,
+    radii: PropTypes.array.isRequired,
   }
 
   color(gl, colors) {
@@ -34,6 +34,25 @@ class WebGLCircle extends React.Component {
     gl.vertexAttribPointer(this.colorAttributeLocation, size, type, normalize, stride, offset);
   }
 
+  radius(gl, radii) {
+
+    // Enable color vertex attribute
+    gl.enableVertexAttribArray(this.radiusAttributeLocation);
+
+    // Bind the color buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.radiusBuffer);
+
+    // Bind the color buffer data
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(radii), gl.STATIC_DRAW);
+
+    const size = 1;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.vertexAttribPointer(this.radiusAttributeLocation, size, type, normalize, stride, offset);
+  }
+
   // Fills the buffer with the values that define a circle.
   circle(gl, vertices) {
 
@@ -47,14 +66,16 @@ class WebGLCircle extends React.Component {
   glWillMount(canvas, gl, program) {
     this.positionAttributeLocation = gl.getAttribLocation(program, "vPosition");
     this.colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+    this.radiusAttributeLocation = gl.getAttribLocation(program, "a_radius");
     this.resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-    this.radiusUniformLocation = gl.getUniformLocation(program, "u_radius");
     this.positionBuffer = gl.createBuffer();
     this.colorBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    this.radiusBuffer = gl.createBuffer();
   }
 
   glRender(canvas, gl, props) {
+
+    this.radius(gl, props.radii);
 
     this.color(gl, props.colors);
 
@@ -83,9 +104,6 @@ class WebGLCircle extends React.Component {
 
     this.circle(gl, props.vertices);
 
-    // Set the radius
-    gl.uniform1f(this.radiusUniformLocation, props.radius);
-
     // Draw the rectangle.
     gl.drawArrays(gl.POINTS, 0, props.vertices.length / 2);
   }
@@ -96,13 +114,13 @@ class WebGLCircle extends React.Component {
         <VertexShader>{`
           attribute vec2 vPosition;
           uniform vec2 u_resolution;
-          uniform float u_radius;
+          attribute float a_radius;
           attribute vec4 a_color;
           varying vec4 v_color;
 
           void main(void)
           {
-            gl_PointSize = u_radius;
+            gl_PointSize = a_radius;
 
             // convert the position from pixels to 0.0 to 1.0
             vec2 zeroToOne = vPosition / u_resolution;

@@ -11,6 +11,7 @@ class App extends Component {
   state = {
     circles: [],
     colors: [],
+    radii: [],
   }
 
   constructor() {
@@ -40,7 +41,8 @@ class App extends Component {
     unstable_deferredUpdates(() => {
       this.setState({
         circles: this.state.circles.concat([[canvasX, canvasY]]),
-        colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]])
+        colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]]),
+        radii: this.state.radii.concat([[Math.random() * 32.0]])
       })
     })
 
@@ -74,7 +76,8 @@ class App extends Component {
 
     this.setState({
       circles: this.state.circles.concat([[canvasX, canvasY]]),
-      colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]])
+      colors: this.state.colors.concat([[Math.random(), Math.random(), Math.random(), 1.0]]),
+      radii: this.state.radii.concat([[Math.random() * 32.0]])
     })
   }
 
@@ -87,7 +90,7 @@ class App extends Component {
         >
           <WebGLCircle
               vertices={_.flatten(this.state.circles)}
-              radius={4}
+              radii={_.flatten(this.state.radii)}
               colors={_.flatten(this.state.colors)}
           />
       </WebGLCanvas>
