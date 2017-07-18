@@ -78,16 +78,11 @@ class App extends Component {
          onMouseUp={this.handleMouseUp}
          onMouseMove={this.handleMouseMove}
         >
-          {
-            (_.uniq(this.state.circles)).map(([x, y]) =>
-              <WebGLCircle
-                x={x}
-                y={y}
-                radius={4}
-                color={[0, 0, 0, 1]}
-              />
-            )
-          }
+          <WebGLCircle
+              vertices={_.flatten(this.state.circles)}
+              radius={4}
+              color={[0, 0, 0, 1]}
+          />
       </WebGLCanvas>
     );
   }

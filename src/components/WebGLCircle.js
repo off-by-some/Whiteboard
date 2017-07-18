@@ -11,19 +11,18 @@ import glComponent from "../lib/glComponent";
 class WebGLCircle extends React.Component {
   static propTypes = {
     color: PropTypes.array.isRequired,
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
+    points: PropTypes.array.isRequired,
     radius: PropTypes.number.isRequired,
   }
 
   // Fills the buffer with the values that define a circle.
-  circle(gl, x, y) {
+  circle(gl, vertices) {
 
     // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect
     // whatever buffer is bound to the `ARRAY_BUFFER` bind point
     // but so far we only have one buffer. If we had more than one
     // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x, y]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   }
 
   glWillMount(canvas, gl, program) {
@@ -60,7 +59,7 @@ class WebGLCircle extends React.Component {
       offset
     );
 
-    this.circle(gl, props.x, props.y);
+    this.circle(gl, props.vertices);
 
     // Set the radius
     gl.uniform1f(this.radiusUniformLocation, props.radius);
@@ -71,7 +70,7 @@ class WebGLCircle extends React.Component {
     gl.uniform4f(this.colorUniformLocation, r, g, b, a);
 
     // Draw the rectangle.
-    gl.drawArrays(gl.POINTS, 0, 1);
+    gl.drawArrays(gl.POINTS, 0, props.vertices.length / 2);
   }
 
   render() {
